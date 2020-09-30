@@ -1,0 +1,20 @@
+# local package
+-e .
+
+# external requirements
+click~=7.1.2
+Sphinx
+#coverage
+#awscli
+#flake8
+python-dotenv>=0.14.0
+image-slicer~=2.1.1
+tensorboard~=2.0.1
+tensorflow-estimator~=2.0.1
+torch==1.2.0
+torchvision==0.4.0
+scipy~=1.5.2
+numpy~=1.19.2
+matplotlib~=3.2.0
+Pillow~=7.2.0
+setuptools~=47.1.0
