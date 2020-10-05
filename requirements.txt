@@ -7,11 +7,13 @@ Sphinx
 #coverage
 #awscli
 #flake8
+tqdm>=4.4.47
 python-dotenv>=0.14.0
 image-slicer~=2.1.1
 tensorboard~=2.3.0
 tensorflow-estimator~=2.3.0
 torch==1.6.0
+opencv-python>=4.4.0.42
 torchvision==0.7.0
 fastai==2.0.15
 scipy~=1.5.2

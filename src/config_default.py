@@ -26,3 +26,5 @@ class TrainingConfig:
     ngpu = 1
     wtl2 = 0.999
     beta1 = 0.5
+    beta2 = 0.999
+    device = 'cuda'
