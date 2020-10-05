@@ -2,6 +2,8 @@ import logging
 import click
 from pathlib import Path
 from src.dataLayer.importRGB import importData
+from src.models.train_model import trainInpainting
+from src.models.UnetPartialConvModel import generator,discriminator
 
 
 @click.command()
@@ -19,7 +21,11 @@ def main(input_filepath, output_filepath):
     print("the argument(s) " +input_filepath)
     print("the argument(s) " + output_filepath)
     curdatLayer = importData()
-    curdatLayer.getRBGDataLoader()
+    train, test = curdatLayer.getRBGDataLoader()
+    gen = generator()
+    disc = discriminator()
+    curtraingModel=trainInpainting(train,test,gen,disc)
+    curtraingModel.trainGAN()
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
