@@ -22,9 +22,7 @@ def main(input_filepath, output_filepath):
     print("the argument(s) " + output_filepath)
     curdatLayer = importData()
     train, test = curdatLayer.getRBGDataLoader()
-    gen = generator()
-    disc = discriminator()
-    curtraingModel=trainInpainting(train,test,gen,disc)
+    curtraingModel=trainInpainting(train,test,generator,discriminator)
     curtraingModel.trainGAN()
 
 if __name__ == '__main__':

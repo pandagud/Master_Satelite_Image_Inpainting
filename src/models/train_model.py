@@ -47,6 +47,9 @@ class trainInpainting():
         criterion = nn.BCEWithLogitsLoss()
         display_step = 500
         cur_step = 0
+
+        mean_discriminator_loss = 0
+        mean_generator_loss=0
         #få lagt loadAndAugmentmasks på billeder i en fil for sig
         #randseed returnerer nok de samme masker
         loadAndAgumentMasks = makeMasks.MaskClass(height=256,width=256,channels=3,rand_seed=None)
@@ -62,17 +65,19 @@ class trainInpainting():
 
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
-
         for epoch in range(self.epochs):
             # Dataloader returns the batches
             for real, _ in tqdm(self.dataloader):
+
                 cur_batch_size = len(real)
                 real = real.to(self.device)
-                masks = loadAndAgumentMasks.returnTensorMasks()
+                masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
                 ## Update discriminator ##
                 disc_opt.zero_grad()
                 #lav om så den kører på masker
-
+                masks = torch.from_numpy(masks)
+                masks = masks.to(self.device)
+                masks = masks.type(torch.cuda.FloatTensor)
                 fake_noise = real*masks
                 fake = gen(fake_noise,masks)
                 disc_fake_pred = disc(fake.detach())

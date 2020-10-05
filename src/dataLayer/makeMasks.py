@@ -1,24 +1,27 @@
 import os
 from copy import deepcopy
-from random import randint, seed
+from random import  seed
 #from keras.preprocessing.image import ImageDataGenerator
 import numpy as np
 import cv2
 import torch
 from torchvision.utils import save_image
+from pathlib import Path
 #Inspiration drawn from https://github.com/MathiasGruber/PConv-Keras/blob/master/libs/util.py
 import gc
 
 
 class MaskClass():
-    def __init__(self, height, width, channels=3, rand_seed=None, maskpath=r"C:\Users\Morten From\Documents\SateliteImages\irregular_mask\mask\testing_mask_dataset",
-                 filepath=r"C:\Users\Morten From\Documents\SateliteImages\MaskedTrainData"):
+    def __init__(self, height, width, channels=3, rand_seed=None):
+
+        self.localdir = Path().absolute().parent
+        self.mask_path = Path.joinpath(self.localdir, 'data\\masks\\irregular_mask\\disocclusion_img_mask')
         self.height = height
         self.width = width
         self.channels = channels
         self.rand_seed = rand_seed
-        self.maskpath = maskpath
-        self.filepath = filepath
+        self.maskpath = self.mask_path
+        self.filepath = self.mask_path
 
         #Find de maske png filer der er downloadet fra NVIDIA's sæt
         #gem dem i mask_files
@@ -99,8 +102,8 @@ class MaskClass():
         #    test2 = torch.from_numpy(mask)
 
     def FindAndAugmentMask(self, rotation=True, dilation=True, cropping=True):
-        PathToMasks = r"C:\Users\Morten From\Documents\SateliteImages\irregular_mask\mask\testing_mask_dataset"  # læg ind i filepath måske senere
-        mask = cv2.imread(os.path.join(PathToMasks, np.random.choice(self.mask_files, 1, replace=False)[0]))
+        ##PathToMasks = r"C:\Users\Morten From\Documents\SateliteImages\irregular_mask\mask\testing_mask_dataset"  # læg ind i filepath måske senere
+        mask = cv2.imread(os.path.join(self.mask_path, np.random.choice(self.mask_files, 1, replace=False)[0]))
 
         # Rotation
         if rotation:

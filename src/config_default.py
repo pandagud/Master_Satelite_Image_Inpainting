@@ -17,7 +17,7 @@ class TrainingConfig:
     dataset_name: str = 'sataliteImage'
     loss_function: str = 'MISSING'
     epochs: int = 50  # Number of epochs to train the model_name on.
-    batch_size: int = 64  # Batch size during training.
+    batch_size: int = 16  # Batch size during training.
     image_size: int = 256
     workers =0
     numberGPU = 1

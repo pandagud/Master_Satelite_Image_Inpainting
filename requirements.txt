@@ -2,7 +2,6 @@
 -e .
 
 # external requirements
-click~=7.1.2
 Sphinx
 #coverage
 #awscli
@@ -22,3 +21,4 @@ matplotlib~=3.2.0
 Pillow~=7.2.0
 setuptools~=47.1.0
 rasterio>=1.1.7
+click~=7.1.2

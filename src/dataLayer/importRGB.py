@@ -24,11 +24,11 @@ class importData():
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             ])
-        train_data = dset.ImageFolder(dataroot+"\\Train", transform = localtransform)
-        test_data= dset.ImageFolder(dataroot+"\\Test", transform = localtransform)
-        train_data_loader=torch.utils.data.DataLoader(train_data, batch_size=TrainingConfig.batch_size,
+            train_data = dset.ImageFolder(dataroot+"\\Train", transform = localtransform)
+            test_data= dset.ImageFolder(dataroot+"\\Test", transform = localtransform)
+            train_data_loader=torch.utils.data.DataLoader(train_data, batch_size=TrainingConfig.batch_size,
                                            shuffle=False, num_workers=TrainingConfig.workers)
-        test_data_loader= torch.utils.data.DataLoader(test_data, batch_size=TrainingConfig.batch_size,
+            test_data_loader= torch.utils.data.DataLoader(test_data, batch_size=TrainingConfig.batch_size,
                                            shuffle=False, num_workers=TrainingConfig.workers)
         # Create the dataloader
         return train_data_loader,test_data_loader
