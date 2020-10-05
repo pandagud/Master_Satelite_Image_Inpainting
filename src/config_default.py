@@ -20,6 +20,7 @@ class TrainingConfig:
     batch_size: int = 64  # Batch size during training.
     image_size: int = 256
     workers =0
+    numberGPU = 1
     wantToLoadData:bool = True
     lr:int = 0.0002
     ngpu = 1
