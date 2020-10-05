@@ -28,14 +28,19 @@ class trainInpainting():
         self.beta2 = TrainingConfig.beta2
         self.device = TrainingConfig.device
 
-    def show_tensor_images(image_tensor, num_images=25, size=(1, 28, 28)):
+    def show_tensor_images(self, image_tensorReal,image_tensorFake,image_tensorMasked, num_images=4, size=(3, 256, 256)):
         '''
         Function for visualizing images: Given a tensor of images, number of images, and
         size per image, plots and prints the images in an uniform grid.
         '''
-        image_tensor = (image_tensor + 1) / 2
-        image_unflat = image_tensor.detach().cpu()
-        image_grid = make_grid(image_unflat[:num_images], nrow=5)
+        image_tensor1 = (image_tensorReal + 1) / 2
+        image_unflat1 = image_tensor1.detach().cpu()
+        image_tensor2 = (image_tensorFake + 1) / 2
+        image_unflat2 = image_tensor2.detach().cpu()
+        image_tensor3 = (image_tensorMasked + 1) / 2
+        image_unflat3 = image_tensor3.detach().cpu()
+        image_unflat1 = torch.cat((image_unflat1,image_unflat2,image_unflat3),dim=0)
+        image_grid = make_grid(image_unflat1[:num_images*3], nrow=4)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
         plt.show()
 
@@ -45,7 +50,7 @@ class trainInpainting():
         disc = self.discriminator().to(self.device)
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         criterion = nn.BCEWithLogitsLoss()
-        display_step = 500
+        display_step = 50
         cur_step = 0
 
         mean_discriminator_loss = 0
@@ -65,19 +70,28 @@ class trainInpainting():
 
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
+        masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+        masks = torch.from_numpy(masks)
+        masks = masks.type(torch.cuda.FloatTensor)
+        masks = masks.to(self.device)
+
+
+
         for epoch in range(self.epochs):
             # Dataloader returns the batches
             for real, _ in tqdm(self.dataloader):
 
                 cur_batch_size = len(real)
                 real = real.to(self.device)
-                masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                t = torch.cuda.get_device_properties(0).total_memory
+                c = torch.cuda.memory_cached(0)
+                a = torch.cuda.memory_allocated(0)
+                print(t)
+                print(c)
+                print(a)
                 ## Update discriminator ##
                 disc_opt.zero_grad()
                 #lav om så den kører på masker
-                masks = torch.from_numpy(masks)
-                masks = masks.to(self.device)
-                masks = masks.type(torch.cuda.FloatTensor)
                 fake_noise = real*masks
                 fake = gen(fake_noise,masks)
                 disc_fake_pred = disc(fake.detach())
@@ -109,8 +123,7 @@ class trainInpainting():
                 if cur_step % display_step == 0 and cur_step > 0:
                     print(
                         f"Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
-                    self.show_tensor_images(fake)
-                    self.show_tensor_images(real)
+                    self.show_tensor_images(fake,real,fake_noise_2)
                     mean_generator_loss = 0
                     mean_discriminator_loss = 0
                 cur_step += 1

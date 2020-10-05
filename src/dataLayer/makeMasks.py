@@ -15,7 +15,7 @@ class MaskClass():
     def __init__(self, height, width, channels=3, rand_seed=None):
 
         self.localdir = Path().absolute().parent
-        self.mask_path = Path.joinpath(self.localdir, 'data\\masks\\irregular_mask\\disocclusion_img_mask')
+        self.mask_path = Path.joinpath(self.localdir, 'data\\masks\\irregular_mask\\mask\\testing_mask_dataset')
         self.height = height
         self.width = width
         self.channels = channels
