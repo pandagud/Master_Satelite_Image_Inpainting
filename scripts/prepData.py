@@ -1,7 +1,7 @@
 import logging
 import click
 from pathlib import Path
-from src.dataLayer.importRGB import importData
+from src.prepData.RGBImage import prepRBGdata
 
 
 @click.command()
@@ -18,8 +18,9 @@ def main(input_filepath, output_filepath):
 
     print("the argument(s) " +input_filepath)
     print("the argument(s) " + output_filepath)
-    curdatLayer = importData()
-    curdatLayer.getRBGDataLoader()
+    curprepRBGdata= prepRBGdata()
+    curprepRBGdata.LoadRGBdata()
+
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
