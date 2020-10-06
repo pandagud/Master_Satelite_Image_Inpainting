@@ -6,7 +6,6 @@ from fastai.vision.gan import GANLearner,Adam
 from fastai.callback.data import CudaCallback
 
 from src.models.UnetPartialConvModel import generator,discriminator
-from src.config_default import TrainingConfig
 import torch
 from torch import nn
 from tqdm.auto import tqdm
@@ -15,18 +14,18 @@ from torchvision.utils import make_grid
 from src.dataLayer import makeMasks
 
 class trainInpainting():
-    def __init__(self, dataloader, testImageDataloader, generator, discriminator):
+    def __init__(self, dataloader, testImageDataloader, generator, discriminator,config):
         self.dataloader = dataloader
         self.testdataloader = testImageDataloader
         self.generator = generator
         self.discriminator = discriminator
-        self.batchSize = TrainingConfig.batch_size
-        self.epochs = TrainingConfig.epochs
-        self.numberGPU = TrainingConfig.numberGPU #if using pure pytorch
-        self.lr = TrainingConfig.lr
-        self.beta1 = TrainingConfig.beta1
-        self.beta2 = TrainingConfig.beta2
-        self.device = TrainingConfig.device
+        self.batchSize = config.batch_size
+        self.epochs = config.epochs
+        self.numberGPU = config.numberGPU #if using pure pytorch
+        self.lr = config.lr
+        self.beta1 = config.beta1
+        self.beta2 = config.beta2
+        self.device = config.device
 
     def show_tensor_images(self, image_tensorReal,image_tensorFake,image_tensorMasked, num_images=4, size=(3, 256, 256)):
         '''
