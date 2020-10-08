@@ -7,6 +7,7 @@ Sphinx
 #awscli
 #flake8
 tqdm>=4.4.47
+scikit-image>=0.17.2
 python-dotenv>=0.14.0
 image-slicer~=2.1.1
 tensorboard~=2.3.0

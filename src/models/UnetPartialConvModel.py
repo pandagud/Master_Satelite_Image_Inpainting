@@ -147,7 +147,7 @@ class generator(nn.Module):
         self.up5 = UNetUp(512+256, 256, 3)
         self.up6 = UNetUp(256+128, 128, 3)
         self.up7 = UNetUp(128+64, 64, 3)
-        self.up8 = UNetUp(64+3, 3, 3, lastLayer=True)
+        self.up8 = UNetUp(64+3, 3, 3, lastLayer=True) #check opløsning der kommer ud?
 
     def forward(self, input, mask):
         x1, mask1 = self.down1(input, mask_in=mask)
