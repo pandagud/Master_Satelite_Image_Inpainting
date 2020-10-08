@@ -29,14 +29,20 @@ class importData():
         self.localdir = pathlib.Path().absolute().parent
         self.processed_path = Path.joinpath(self.localdir, 'data\\processed')
 
+
+
     def getRBGDataLoader(self,config):
 
         raw_rgb =self.get_images_array(invert=True)
         localtransform = transforms.Compose([
             transforms.Resize(config.image_size),
             transforms.CenterCrop(config.image_size),
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            # Skal eller skal ikke normalize?
         ])
         raw_rgbData = SatelliteDataset(raw_rgb,localtransform)
         test_data_loader = torch.utils.data.DataLoader(raw_rgbData, batch_size=config.batch_size,

@@ -9,6 +9,7 @@ from src.models.UnetPartialConvModel import generator,discriminator
 import torch
 from torch import nn
 from tqdm.auto import tqdm
+import numpy as np
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from src.dataLayer import makeMasks
@@ -27,7 +28,7 @@ class trainInpainting():
         self.beta2 = config.beta2
         self.device = config.device
 
-    def show_tensor_images(self, image_tensorReal,image_tensorFake,image_tensorMasked, num_images=4, size=(3, 256, 256)):
+    def show_tensor_images(self, image_tensorReal,image_tensorFake,image_tensorMasked, num_images= 12, size=(3, 256, 256)):
         '''
         Function for visualizing images: Given a tensor of images, number of images, and
         size per image, plots and prints the images in an uniform grid.
@@ -39,7 +40,7 @@ class trainInpainting():
         image_tensor3 = (image_tensorMasked + 1) / 2
         image_unflat3 = image_tensor3.detach().cpu()
         image_unflat1 = torch.cat((image_unflat1,image_unflat2,image_unflat3),dim=0)
-        image_grid = make_grid(image_unflat1[:num_images*3], nrow=4)
+        image_grid = make_grid(image_unflat1[:num_images*3], nrow=12)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
         plt.show()
 
@@ -48,16 +49,16 @@ class trainInpainting():
         gen_opt = torch.optim.Adam(gen.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         disc = self.discriminator().to(self.device)
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
-        criterion = nn.BCEWithLogitsLoss()
-        display_step = 50
+        criterionBCE = nn.BCELoss()
+        criterionL1 = nn.L1Loss()
+        display_step = 1000
         cur_step = 0
 
         mean_discriminator_loss = 0
         mean_generator_loss=0
-        #få lagt loadAndAugmentmasks på billeder i en fil for sig
-        #randseed returnerer nok de samme masker
-        loadAndAgumentMasks = makeMasks.MaskClass(height=256,width=256,channels=3,rand_seed=None)
-        #maskpath er lige nu hardcodet i makeMasks
+
+        loadAndAgumentMasks = makeMasks.MaskClass(rand_seed=None)
+
         #måske nn.Conv2d med vægte ikke virker når vi bruger partconv2d, i så fald måske tilføje
         #or isinstance(m,partConv2d) og læg partconv2d et sted hvor den er accessible.
         def weights_init(m):
@@ -69,16 +70,22 @@ class trainInpainting():
 
         gen = gen.apply(weights_init)
         disc = disc.apply(weights_init)
-        masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
-        masks = torch.from_numpy(masks)
-        masks = masks.type(torch.cuda.FloatTensor)
-        masks = masks.to(self.device)
+
 
 
 
         for epoch in range(self.epochs):
             # Dataloader returns the batches
             for real, _ in tqdm(self.dataloader):
+                masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                masksInverted = 1-masks
+                masksInverted = torch.from_numpy(masksInverted)
+                masksInverted = masksInverted.type(torch.cuda.FloatTensor)
+                masksInverted.to(self.device)
+
+                masks = torch.from_numpy(masks)
+                masks = masks.type(torch.cuda.FloatTensor)
+                masks.to(self.device)
 
                 cur_batch_size = len(real)
                 real = real.to(self.device)
@@ -91,12 +98,12 @@ class trainInpainting():
                 ## Update discriminator ##
                 disc_opt.zero_grad()
                 #lav om så den kører på masker
-                fake_noise = real*masks
+                fake_noise = torch.mul(real,masksInverted)
                 fake = gen(fake_noise,masks)
                 disc_fake_pred = disc(fake.detach())
-                disc_fake_loss = criterion(disc_fake_pred, torch.zeros_like(disc_fake_pred))
+                disc_fake_loss = criterionBCE(disc_fake_pred, torch.zeros_like(disc_fake_pred))
                 disc_real_pred = disc(real)
-                disc_real_loss = criterion(disc_real_pred, torch.ones_like(disc_real_pred))
+                disc_real_loss = criterionBCE(disc_real_pred, torch.ones_like(disc_real_pred))
                 disc_loss = (disc_fake_loss + disc_real_loss) / 2
 
                 # Keep track of the average discriminator loss
@@ -108,10 +115,14 @@ class trainInpainting():
 
                 ## Update generator ##
                 gen_opt.zero_grad()
-                fake_noise_2 = real*masks
-                fake_2 = gen(fake_noise_2,masks)
+                #fake_noise_2 = real*masksInverted
+                fake_2 = gen(fake_noise,masks)
                 disc_fake_pred = disc(fake_2)
-                gen_loss = criterion(disc_fake_pred, torch.ones_like(disc_fake_pred))
+                gen_lossMSE = criterionL1(real, fake_2)
+                gen_loss = criterionBCE(disc_fake_pred,torch.ones_like(disc_real_pred))
+                gen_loss = gen_lossMSE+gen_loss
+                # få lavet en loss function, der penalizer pixels ændret udenfor maske
+                # + regner MSE/L1 på alle pixels
                 gen_loss.backward()
                 gen_opt.step()
 
@@ -122,7 +133,7 @@ class trainInpainting():
                 if cur_step % display_step == 0 and cur_step > 0:
                     print(
                         f"Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
-                    self.show_tensor_images(fake,real,fake_noise_2)
+                    self.show_tensor_images(fake_2, real, fake_noise)
                     mean_generator_loss = 0
                     mean_discriminator_loss = 0
                 cur_step += 1
