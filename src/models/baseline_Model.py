@@ -13,7 +13,7 @@ class baselineModel():
         self.batchSize = TrainingConfig.batch_size
         self.testImages = testImages
 
-    def show_images(self, real_masked,real,fakes):
+    def show_images(self, fakes,real,real_masked):
         fig, axes = plt.subplots(ncols=3, nrows=1)
         ax = axes.ravel()
 
@@ -36,24 +36,25 @@ class baselineModel():
 
         loadAndAgumentMasks = makeMasks.MaskClass(rand_seed=None)
         #If we load for each batchsize
-        masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+        #masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
 
         # Defect image over the same region in each color channel
 
 
-        for real, _ in self.testImages:
+        for real in self.testImages:
 
             #Get masks and make tensor, set to GPU
-            mask = loadAndAgumentMasks.returnTensorMasks(1)
+            mask = loadAndAgumentMasks.returnMask()
+            mask = mask[0, :, :]
+            mask = 1-mask
             #Get real and set to GPU
 
             #Augment with masks
             #Check if this applies to  all three color channels?
             real_masked = real.copy()
             for layer in range(real_masked.shape[-1]):
-                real_masked[np.where(mask)] = 1 #or 0?
-
-            results = inpaint.inpaint_biharmonic(real_masked, masks, multichannel=True)
+                real_masked[mask==1] = 1 #or 0?
+            results = inpaint.inpaint_biharmonic(real_masked, mask, multichannel=True)
 
             self.show_images(results, real, real_masked)
 

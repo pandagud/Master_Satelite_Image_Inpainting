@@ -8,7 +8,7 @@ class TrainingConfig:
     logging_verbosity: str = 'info'  # Logging verbosity (debug|info|warning|error|fatal).
 
     number_tiles: int = 100
-
+    run_TCI:bool = False
     dataset_name: str = 'sataliteImage'
     loss_function: str = 'MISSING'
     epochs: int = 1000  # Number of epochs to train the model_name on.

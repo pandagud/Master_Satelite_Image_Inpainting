@@ -17,6 +17,7 @@ class prepRBGdata:
         self.iterim_path = Path.joinpath(self.localdir,'data\\interim')
         self.processed_path = Path.joinpath(self.localdir,'data\\processed')
         self.number_tiles = config.number_tiles
+        self.image_size = config.image_size
 
     def initTestAndValSplit(self,tuples):
         tiles_list = list(tuples)
@@ -52,7 +53,7 @@ class prepRBGdata:
 
         tiles =self.sliceData(bandTCI_img_path)
         ## Only cal once!
-        self.initTestAndValSplit(tiles)
+        ##self.initTestAndValSplit(tiles)
         train, test = self.trainTestSplit(tiles)
         self.storeTrainAndTest(path,test,train,'TCI')
 
@@ -82,7 +83,11 @@ class prepRBGdata:
 
         return bandTCI_img_path,band2_img_path,band3_img_path,band4_img_path
 
-    def trainTestSplit(self, train,test):
+    def trainTestSplit(self, tuples):
+        tiles_list = list(tuples)
+        random.shuffle(tiles_list)
+        train = tiles_list[:int((len(tiles_list) + 1) * .80)]  # Remaining 80% to training set
+        test = tiles_list[int((len(tiles_list) + 1) * .80):]  # Splits 20% data to test set
         train_data = tuple(train)
         test_data = tuple(test)
         return train_data, test_data
@@ -95,6 +100,9 @@ class prepRBGdata:
 
     def sliceData(self,path_org_img):
         tiles = image_slicer.slice(path_org_img, self.number_tiles, save=False)
+        resizeShape = self.image_size,self.image_size
+        for tile in tiles :
+            tile.image = tile.image.resize(resizeShape)
         return tiles
 
     def storeTrainAndTest(self,path,test_data,train_data,folder_name):

@@ -44,6 +44,10 @@ class MaskClass():
         )
         return mask
 
+    def returnMask(self):
+        mask = self.FindAndAugmentMask(rotation=False)
+        return mask
+
     def FindAndAugmentMask(self, rotation=True):
         ##PathToMasks = r"C:\Users\Morten From\Documents\SateliteImages\irregular_mask\mask\testing_mask_dataset"  # læg ind i filepath måske senere
         mask = cv2.imread(os.path.join(self.mask_path, np.random.choice(self.mask_files, 1, replace=False)[0]))
