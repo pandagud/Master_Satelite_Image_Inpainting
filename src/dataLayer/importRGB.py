@@ -12,28 +12,25 @@ class importData():
 
 
 
-    def getRBGDataLoader(self):
+    def getRBGDataLoader(self,config):
         ## implemented to look into all for folders located in processed
         subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
         for folder in subfolders:
             dataroot = folder+"\\bandTCIRGB"
             # Create the dataset
             localtransform = transforms.Compose([
-                transforms.Resize(TrainingConfig.image_size),
-                transforms.CenterCrop(TrainingConfig.image_size),
-                transforms.RandomHorizontalFlip(p=0.5),
-                transforms.RandomVerticalFlip(p=0.5),
-                transforms.ColorJitter(brightness=0.2,saturation=0.2,contrast=0.2),
+                transforms.Resize(config.image_size),
+                transforms.CenterCrop(config.image_size),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                 #Skal eller skal ikke normalize?
             ])
             train_data = dset.ImageFolder(dataroot+"\\Train", transform = localtransform)
             test_data= dset.ImageFolder(dataroot+"\\Test", transform = localtransform)
-            train_data_loader=torch.utils.data.DataLoader(train_data, batch_size=TrainingConfig.batch_size,
-                                           shuffle=False, num_workers=TrainingConfig.workers, drop_last=True)
-            test_data_loader= torch.utils.data.DataLoader(test_data, batch_size=TrainingConfig.batch_size,
-                                           shuffle=False, num_workers=TrainingConfig.workers, drop_last=True)
+            train_data_loader=torch.utils.data.DataLoader(train_data, batch_size=config.batch_size,
+                                           shuffle=False, num_workers=config.workers)
+            test_data_loader= torch.utils.data.DataLoader(test_data, batch_size=config.batch_size,
+                                           shuffle=False, num_workers=config.workers)
         # Create the dataloader
         return train_data_loader,test_data_loader
 
