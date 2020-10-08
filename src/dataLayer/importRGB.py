@@ -57,9 +57,9 @@ class importData():
             train_data = dset.ImageFolder(dataroot+"\\Train", transform = localtransform)
             test_data= dset.ImageFolder(dataroot+"\\Test", transform = localtransform)
             train_data_loader=torch.utils.data.DataLoader(train_data, batch_size= self.config.batch_size,
-                                           shuffle=False, num_workers= self.config.workers)
+                                           shuffle=False, num_workers= self.config.workers,drop_last=True)
             test_data_loader= torch.utils.data.DataLoader(test_data, batch_size= self.config.batch_size,
-                                           shuffle=False, num_workers= self.config.workers)
+                                           shuffle=False, num_workers= self.config.workers,drop_last=True)
         # Create the dataloader
         return train_data_loader,test_data_loader
     def open_files(self, path):

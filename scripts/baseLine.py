@@ -21,7 +21,7 @@ def main(args):
     logger.info('making final dataLayer set from raw dataLayer')
 
     curdatLayer = importData(config)
-    train = curdatLayer.get_images_array()
+    train = curdatLayer.get_images_for_baseLine()
     curBaseLineModel = baselineModel(train)
     curBaseLineModel.baselineExperiment()
 
@@ -35,10 +35,10 @@ def update_config(args,config):
             localType = c[key]
             if isinstance(localType, int):
                 c[key] = int(newValue)
-            elif  isinstance(localType,bool):
-                c[key] =bool(newValue)
             elif  isinstance(localType,float):
                 c[key]=float(newValue)
+            elif  newValue=='True'or newValue=='False':
+                c[key] =bool(newValue)
             else:
                 c[key]=newValue
     new_config = TrainingConfig(**c)
