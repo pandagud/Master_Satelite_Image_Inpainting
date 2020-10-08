@@ -21,6 +21,9 @@ class importData():
             localtransform = transforms.Compose([
                 transforms.Resize(config.image_size),
                 transforms.CenterCrop(config.image_size),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomVerticalFlip(p=0.5),
+                transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
                 transforms.ToTensor(),
                 transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
                 #Skal eller skal ikke normalize?
