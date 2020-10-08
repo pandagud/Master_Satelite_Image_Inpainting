@@ -5,6 +5,7 @@ from src.dataLayer.importRGB import importData
 from src.models.train_model import trainInpainting
 from src.models.baseline_Model import baselineModel
 from src.config_default import TrainingConfig
+from src.config_utillity import update_config
 from dataclasses import dataclass
 
 
@@ -24,27 +25,6 @@ def main(args):
     train = curdatLayer.get_images_for_baseLine()
     curBaseLineModel = baselineModel(train)
     curBaseLineModel.baselineExperiment()
-
-def update_config(args,config):
-    # Instantiate the parser
-    d = dict(arg.split(':') for arg in args)
-    c = config.__dict__
-    for key in d.keys():
-        if key in c.keys():
-            newValue = d[key]
-            localType = c[key]
-            if isinstance(localType, int):
-                c[key] = int(newValue)
-            elif  isinstance(localType,float):
-                c[key]=float(newValue)
-            elif  newValue=='True'or newValue=='False':
-                c[key] =bool(newValue)
-            else:
-                c[key]=newValue
-    new_config = TrainingConfig(**c)
-    return new_config
-
-
 
 
 if __name__ == '__main__':
