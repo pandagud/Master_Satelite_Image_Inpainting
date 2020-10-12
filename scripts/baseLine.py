@@ -6,7 +6,6 @@ from src.models.train_model import trainInpainting
 from src.models.baseline_Model import baselineModel
 from src.config_default import TrainingConfig
 from src.config_utillity import update_config
-from dataclasses import dataclass
 
 
 @click.command()

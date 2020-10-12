@@ -13,7 +13,10 @@ def update_config(args,config):
             elif localType==float:
                 c[key]=float(newValue)
             elif localType==bool:
-                c[key] = bool(newValue)
+                if newValue=='False':
+                    c[key] = False
+                else :
+                    c[key] =True
             else:
                 c[key]=newValue
     new_config = TrainingConfig(**c)

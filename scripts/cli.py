@@ -20,8 +20,8 @@ def main(args):
     logger = logging.getLogger(__name__)
     logger.info('making final dataLayer set from raw dataLayer')
 
-    curdatLayer = importData()
-    train, test = curdatLayer.getRBGDataLoader(config)
+    curdatLayer = importData(config)
+    train, test = curdatLayer.getRBGDataLoader()
     curtraingModel=trainInpainting(train,test,generator,discriminator,config)
     curtraingModel.trainGAN()
 

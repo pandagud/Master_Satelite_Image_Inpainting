@@ -13,6 +13,7 @@ def main(args):
         cleaned dataLayer ready to be analyzed (saved in ../processed).
     """
     ## Talk to Rune about how dataLayer is handle. If it should be part of the "big" project.
+    ## set number_tiles:1764
     config = TrainingConfig()
     config = update_config(args,config)
     logger = logging.getLogger(__name__)
