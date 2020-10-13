@@ -61,7 +61,6 @@ class MaskClass():
         #burde få den til at være channels * heigth* width, istedet for height width channels
         mask = np.swapaxes(mask, 0, 2)
         mask = np.swapaxes(mask, 1, 2)
-        mask = 1-mask
         return (mask > 1).astype(np.uint8)
 
 
