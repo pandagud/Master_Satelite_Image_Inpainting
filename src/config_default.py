@@ -23,3 +23,5 @@ class TrainingConfig:
     beta1:float = 0.5
     beta2:float = 0.999
     device:str = 'cuda'
+    trainMode:bool = False
+    pathToModel:str = 'm'
