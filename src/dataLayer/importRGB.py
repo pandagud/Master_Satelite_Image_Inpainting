@@ -35,7 +35,7 @@ class importData():
 
     def getRBGDataLoader(self):
 
-        raw_rgb =self.get_images_array(invert=True)
+        #raw_rgb =self.get_images_array(invert=True)
         localtransform = transforms.Compose([
             transforms.Resize(self.config.image_size),
             transforms.CenterCrop( self.config.image_size),
@@ -46,9 +46,9 @@ class importData():
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             # Skal eller skal ikke normalize?
         ])
-        raw_rgbData = SatelliteDataset(raw_rgb,localtransform)
-        test_data_loader = torch.utils.data.DataLoader(raw_rgbData, batch_size= self.config.batch_size,
-                                                       shuffle=False, num_workers= self.config.workers)
+        #raw_rgbData = SatelliteDataset(raw_rgb,localtransform)
+        #test_data_loader = torch.utils.data.DataLoader(raw_rgbData, batch_size= self.config.batch_size,
+        #                                               shuffle=False, num_workers= self.config.workers)
         ## implemented to look into all for folders located in processed
         subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
         for folder in subfolders:

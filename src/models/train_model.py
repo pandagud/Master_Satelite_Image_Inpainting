@@ -51,7 +51,7 @@ class trainInpainting():
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         criterionBCE = nn.BCELoss()
         criterionL1 = nn.L1Loss()
-        display_step = 1000
+        display_step = 500
         cur_step = 0
 
         mean_discriminator_loss = 0
@@ -78,10 +78,10 @@ class trainInpainting():
             # Dataloader returns the batches
             for real, _ in tqdm(self.dataloader):
                 masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
-                masksInverted = 1-masks
-                masksInverted = torch.from_numpy(masksInverted)
-                masksInverted = masksInverted.type(torch.cuda.FloatTensor)
-                masksInverted.to(self.device)
+                #masksInverted = 1-masks
+                #masksInverted = torch.from_numpy(masksInverted)
+                #masksInverted = masksInverted.type(torch.cuda.FloatTensor)
+                #masksInverted.to(self.device)
 
                 masks = torch.from_numpy(masks)
                 masks = masks.type(torch.cuda.FloatTensor)
@@ -98,7 +98,7 @@ class trainInpainting():
                 ## Update discriminator ##
                 disc_opt.zero_grad()
                 #lav om så den kører på masker
-                fake_noise = torch.mul(real,masksInverted)
+                fake_noise = torch.mul(real,masks)
                 fake = gen(fake_noise,masks)
                 disc_fake_pred = disc(fake.detach())
                 disc_fake_loss = criterionBCE(disc_fake_pred, torch.zeros_like(disc_fake_pred))
