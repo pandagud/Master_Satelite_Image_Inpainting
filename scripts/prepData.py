@@ -3,6 +3,7 @@ import click
 from pathlib import Path
 from src.prepData.RGBImage import prepRBGdata
 from src.config_default import TrainingConfig
+from src.config_utillity import update_config
 
 
 @click.command()
@@ -12,6 +13,7 @@ def main(args):
         cleaned dataLayer ready to be analyzed (saved in ../processed).
     """
     ## Talk to Rune about how dataLayer is handle. If it should be part of the "big" project.
+    ## set number_tiles:1764
     config = TrainingConfig()
     config = update_config(args,config)
     logger = logging.getLogger(__name__)
@@ -19,25 +21,6 @@ def main(args):
 
     curprepRBGdata= prepRBGdata(config)
     curprepRBGdata.LoadRGBdata()
-
-def update_config(args,config):
-    # Instantiate the parser
-    d = dict(arg.split(':') for arg in args)
-    c = config.__dict__
-    for key in d.keys():
-        if key in c.keys():
-            newValue = d[key]
-            localType = c[key]
-            if isinstance(localType, int):
-                c[key] = int(newValue)
-            elif  isinstance(localType,bool):
-                c[key] =bool(newValue)
-            elif  isinstance(localType,float):
-                c[key]=float(newValue)
-            else:
-                c[key]=newValue
-    new_config = TrainingConfig(**c)
-    return new_config
 
 
 if __name__ == '__main__':

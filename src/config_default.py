@@ -7,7 +7,7 @@ class TrainingConfig:
     use_multi_gpu: bool = False
     logging_verbosity: str = 'info'  # Logging verbosity (debug|info|warning|error|fatal).
 
-    number_tiles: int = 100
+    number_tiles: int = 1764
     run_TCI:bool = False
     dataset_name: str = 'sataliteImage'
     loss_function: str = 'MISSING'

@@ -7,6 +7,9 @@ from os.path import isfile, join
 import random
 
 import image_slicer
+import rasterio
+from rasterio.enums import Resampling
+import numpy as np
 
 class prepRBGdata:
     Image.MAX_IMAGE_PIXELS = None
@@ -20,13 +23,11 @@ class prepRBGdata:
         self.image_size = config.image_size
 
     def initTestAndValSplit(self,tuples):
-        tiles_list = list(tuples)
-        index_list = range(tiles_list.__len__())
+        total_tiles = len(tuples)
+        index_list = list(range(total_tiles))
         random.shuffle(index_list)
         train_index = index_list[:int((len(index_list) + 1) * .80)]  # Remaining 80% to training set
         test_index = index_list[int((len(index_list) + 1) * .80):]  # Splits 20% data to test set
-        train_split,index = tiles_list[:int((len(tiles_list) + 1) * .80)]  # Remaining 80% to training set
-        test_split = tiles_list[int((len(tiles_list) + 1) * .80):]  # Splits 20% data to test set
         return train_index, test_index
 
     def LoadRGBdata(self):
@@ -43,51 +44,94 @@ class prepRBGdata:
             self.cleanUp(temp_img_list)
 
 
-    def convertandSlice(self,path_org_img,id):
+    def resizeOrginalImage(self,input_path,output_path,band=None):
+        # ## Converting image to GEOtiff using Raterio. Dim is set to 10752x10752
+        # Only working with TCI images
+        width = 10752
+        height = 10752
+        with rasterio.open(input_path) as dataset:
+            # resample data to target shape
+            data = dataset.read(
+                out_shape=(width,height
+                ),
+                resampling=Resampling.bilinear
+            )
+            profile=dataset.profile
+            profile['width'] = width
+            profile['height'] = height
+        # writting
+        with rasterio.open(output_path, 'w', **profile) as dataset:
+            dataset.write(data)
 
-        bandTCI_img = Image.open(path_org_img + '_TCI_10m.jp2')  # TCI
+    def convertandSlice(self,path_org_img,id):
+        ## Creating box to end at 10752x10752 dim.
+        box = (0, 0, 10752, 10752) #(x_offset, Y_offset, width, height)
+
+        ## TCI pictures
+        bandTCI_img = Image.open(path_org_img + '_TCI_10m.jp2')
         bandTCI_img_path = Path.joinpath(self.iterim_path, id + 'bandTCI.tiff')
-        bandTCI_img.save(bandTCI_img_path)
+        cropped = bandTCI_img.crop(box)
+        cropped.save(str(bandTCI_img_path))
+        ## self.resizeOrginalImage(bandTCI_img_path,bandTCI_img_path)
 
         path = self.createRGBdir(id,'bandTCI')
 
         tiles =self.sliceData(bandTCI_img_path)
         ## Only cal once!
-        ##self.initTestAndValSplit(tiles)
-        train, test = self.trainTestSplit(tiles)
-        self.storeTrainAndTest(path,test,train,'TCI')
+        train_index, test_index = self.initTestAndValSplit(tiles)
 
-        band2_img  = Image.open(path_org_img+ '_B02_10m.jp2') # blue
-        band2_img_path =Path.joinpath(self.iterim_path,id+'band2.tiff')
-        band2_img.save(band2_img_path)
+        train, test = self.trainTestSplit(tiles,train_index,test_index)
+        train, test = self.storeTrainAndTest(path,test,train,'TCI')
+
+        print("Done with TCI")
+        ## Blue Band
+
+        band2_img = Image.open(path_org_img + '_B02_10m.jp2') # blue
+        band2_img_path = Path.joinpath(self.iterim_path, id + 'band2.tiff')
+        cropped = band2_img.crop(box)
+        cropped.save(str(band2_img_path))
 
         tiles = self.sliceData(band2_img_path)
-        test, train = self.trainTestSplit(tiles)
-        self.storeTrainAndTest(path, test, train, 'blueBand')
-        #
+        train, test = self.trainTestSplit(tiles,train_index,test_index)
+        train, test = self.storeTrainAndTest(path, test, train, 'blueBand')
+
+        print("Done with Blue band")
+        ## Green band
         band3_img = Image.open(path_org_img + '_B03_10m.jp2')  # green
         band3_img_path = Path.joinpath(self.iterim_path, id + 'band3.tiff')
-        band3_img.save(band3_img_path)
+        cropped = band3_img.crop(box)
+        cropped.save(str(band3_img_path))
+
+
+       ## self.resizeOrginalImage(band3_img_path, band3_img_path)
 
         tiles = self.sliceData(band3_img_path)
-        test, train = self.trainTestSplit(tiles)
+        train, test= self.trainTestSplit(tiles,train_index,test_index)
         self.storeTrainAndTest(path, test, train, 'greenBand')
 
+        print("Done with green band")
+        ## Red band
         band4_img = Image.open(path_org_img + '_B04_10m.jp2')  # red
         band4_img_path = Path.joinpath(self.iterim_path, id + 'band4.tiff')
-        band4_img.save(band4_img_path)
+        cropped = band4_img.crop(box)
+        cropped.save(str(band4_img_path))
+
+       ## self.resizeOrginalImage(band4_img_path, band4_img_path)
 
         tiles = self.sliceData(band4_img_path)
-        test, train = self.trainTestSplit(tiles)
+        train, test= self.trainTestSplit(tiles,train_index,test_index)
         self.storeTrainAndTest(path, test, train, 'redBand')
 
         return bandTCI_img_path,band2_img_path,band3_img_path,band4_img_path
 
-    def trainTestSplit(self, tuples):
-        tiles_list = list(tuples)
-        random.shuffle(tiles_list)
-        train = tiles_list[:int((len(tiles_list) + 1) * .80)]  # Remaining 80% to training set
-        test = tiles_list[int((len(tiles_list) + 1) * .80):]  # Splits 20% data to test set
+    def trainTestSplit(self, tuples,train_index,test_index):
+        train = []
+        test = []
+        for i in train_index:
+            train.append(tuples[i])
+        for i in test_index:
+            test.append(tuples[i])
+
         train_data = tuple(train)
         test_data = tuple(test)
         return train_data, test_data
@@ -99,10 +143,8 @@ class prepRBGdata:
         return path_store_img
 
     def sliceData(self,path_org_img):
+
         tiles = image_slicer.slice(path_org_img, self.number_tiles, save=False)
-        resizeShape = self.image_size,self.image_size
-        for tile in tiles :
-            tile.image = tile.image.resize(resizeShape)
         return tiles
 
     def storeTrainAndTest(self,path,test_data,train_data,folder_name):
@@ -125,13 +167,34 @@ class prepRBGdata:
             print("CreatingDir")
             os.makedirs(test_data_path)
             image_slicer.main.save_tiles(test_data, prefix='', directory=test_data_path, format='tiff')
-        return
+        return train_path, test_data_path
 
     def cleanUp(self,path_to_clean):
         for path in path_to_clean:
-            if os.path.exists(path_to_clean):
-                os.remove(path_to_clean)
+            if os.path.exists(path):
+                os.remove(path)
             else:
                 print("The file does not exist")
 
+    # def resizeImages(self,path,uniqueId):
+        # from tifffile import imread, imwrite
+        # from skimage.transform import resize
+        # resizeShape = self.image_size,self.image_size
+        # count = 0
+        # for filename in os.listdir(path):
+        #     count += 1
+        #     localPath = str(path)+'\\'+filename
+        #     data = imread(localPath)
+        #     resized_data = resize(data, resizeShape)
+        #     imwrite(str(path)+'\\'+uniqueId+str(count)+'.tif', resized_data)
 
+        # import cv2
+        # resizeShape = self.image_size,self.image_size
+        # count = 0
+        # for filename in os.listdir(path):
+        #     count+=1
+        #     localPath = str(path)+'\\'+filename
+        #     img = cv2.imread(localPath,cv2.IMREAD_UNCHANGED)
+        #     resized = cv2.resize(img, resizeShape, interpolation=cv2.INTER_AREA)
+        #     im = Image.fromarray(resized)
+        #     im.save(str(path)+'\\'+uniqueId+str(count)+'.tif')

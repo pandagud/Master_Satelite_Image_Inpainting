@@ -9,6 +9,7 @@ from PIL import Image
 import numpy as np
 
 
+
 class SatelliteDataset(Dataset):
     def __init__(self, data, transform=None):
         self.data = torch.from_numpy(data).float()
@@ -35,7 +36,6 @@ class importData():
 
     def getRBGDataLoader(self):
 
-        #raw_rgb =self.get_images_array(invert=True)
         localtransform = transforms.Compose([
             transforms.Resize(self.config.image_size),
             transforms.CenterCrop( self.config.image_size),
@@ -46,9 +46,6 @@ class importData():
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
             # Skal eller skal ikke normalize?
         ])
-        #raw_rgbData = SatelliteDataset(raw_rgb,localtransform)
-        #test_data_loader = torch.utils.data.DataLoader(raw_rgbData, batch_size= self.config.batch_size,
-        #                                               shuffle=False, num_workers= self.config.workers)
         ## implemented to look into all for folders located in processed
         subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
         for folder in subfolders:
@@ -69,6 +66,18 @@ class importData():
         filelist = glob.glob(str_path+'/*.tiff')
         x = np.array([np.array(Image.open(fname)) for fname in filelist])
         return x
+    def open_bandImage_as_array(self,path):
+        import glob
+        import cv2
+        path_images = Path.joinpath(self.processed_path, path)
+        str_path = str(path_images)
+        filelist = glob.glob(str_path + '/*.tiff')
+        data = []
+        for fname in filelist:
+            image = np.array(Image.open(fname))
+            nor_image = (image / np.iinfo(image.dtype).max)
+            data.append(nor_image)
+        return data
 
     def open_Imagefiles_as_array(self,path):
         from matplotlib.image import imread
@@ -116,16 +125,18 @@ class importData():
                 images = self.open_Imagefiles_as_array(dataroot)
             else:
                 redroot = dataroot+"\\redBand"
-                red_images = self.open_Imagefiles_as_array(redroot)
+                red_images = self.open_bandImage_as_array(redroot)
                 blueroot = dataroot+"\\blueBand"
-                blue_images = self.open_Imagefiles_as_array(blueroot)
+                blue_images = self.open_bandImage_as_array(blueroot)
                 greenroot = dataroot+"\\greenBand"
-                green_images = self.open_Imagefiles_as_array(greenroot)
-                raw_rgb = np.stack([red_images,
-                                     blue_images,
-                                     green_images], axis=2)
-                images = raw_rgb
-
+                green_images = self.open_bandImage_as_array(greenroot)
+                totalLen = range(len(red_images))
+                images =[]
+                for i in totalLen:
+                    raw_rgb = np.stack([red_images[i],
+                                     blue_images[i],
+                                     green_images[i]], axis=2)
+                    images.append(raw_rgb)
             return images
 
     # def Load(self):
@@ -174,3 +185,4 @@ class importData():
     #         plot.show(band4, ax=ax3, cmap='Reds')
     #         fig.tight_layout()
     #     print(self.localdir)
+
