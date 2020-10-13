@@ -81,7 +81,7 @@ class prepRBGdata:
         train_index, test_index = self.initTestAndValSplit(tiles)
 
         train, test = self.trainTestSplit(tiles,train_index,test_index)
-        train, test = self.storeTrainAndTest(path,test,train,'TCI')
+        train, test = self.storeTrainAndTest(path,test,train,'TCI\\TCI')
 
         print("Done with TCI")
         ## Blue Band
@@ -160,7 +160,7 @@ class prepRBGdata:
             image_slicer.main.save_tiles(train_data, prefix='', directory=train_path, format='tiff')
 
         ##Test
-        test_data_path = Path.joinpath(path, "Test\\Test")
+        test_data_path = Path.joinpath(path, "Test\\"+folder_name)
         if os.path.exists(test_data_path):
             image_slicer.main.save_tiles(test_data, prefix='', directory=test_data_path, format='tiff')
         else:

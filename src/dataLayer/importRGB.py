@@ -4,24 +4,29 @@ import os
 import torchvision.datasets as dset
 import torchvision.transforms as transforms
 import torch
-from torch.utils.data import Dataset, DataLoader
+from torch.utils.data import Dataset, DataLoader,TensorDataset
 from PIL import Image
 import numpy as np
 
 
 
 class SatelliteDataset(Dataset):
-    def __init__(self, data, transform=None):
+    def __init__(self, data,target, transform=None):
         self.data = torch.from_numpy(data).float()
+        self.target = torch.from_numpy(target).long()
         self.transform = transform
+
+    def __len__(self):
+        return len(self.data)
 
     def __getitem__(self, index):
         x = self.data[index]
+        y = self.target[index]
 
         if self.transform:
             x = self.transform(x)
 
-        return x
+        return x, y
 
     def __len__(self):
         return len(self.data)
@@ -37,6 +42,7 @@ class importData():
     def getRBGDataLoader(self):
 
         localtransform = transforms.Compose([
+            transforms.ToPILImage(),
             transforms.Resize(self.config.image_size),
             transforms.CenterCrop( self.config.image_size),
             transforms.RandomHorizontalFlip(p=0.5),
@@ -44,21 +50,33 @@ class importData():
             transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
             transforms.ToTensor(),
             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-            # Skal eller skal ikke normalize?
         ])
-        ## implemented to look into all for folders located in processed
-        subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
-        for folder in subfolders:
-            dataroot = folder+"\\bandTCIRGB"
-            # Create the dataset
-            train_data = dset.ImageFolder(dataroot+"\\Train", transform = localtransform)
-            test_data= dset.ImageFolder(dataroot+"\\Test", transform = localtransform)
-            train_data_loader=torch.utils.data.DataLoader(train_data, batch_size= self.config.batch_size,
-                                           shuffle=False, num_workers= self.config.workers,drop_last=True)
-            test_data_loader= torch.utils.data.DataLoader(test_data, batch_size= self.config.batch_size,
-                                           shuffle=False, num_workers= self.config.workers,drop_last=True)
+        if self.config.run_TCI:
+            subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
+            for folder in subfolders:
+                dataroot = folder + "\\bandTCIRGB"
+                # Create the dataset
+                train_data = dset.ImageFolder(dataroot + "\\Train\\TCI", transform=localtransform)
+                test_data = dset.ImageFolder(dataroot + "\\Test\\TCI", transform=localtransform)
+                train_data_loader = torch.utils.data.DataLoader(train_data, batch_size=self.config.batch_size,
+                                                                shuffle=False, num_workers=self.config.workers,
+                                                                drop_last=True)
+                test_data_loader = torch.utils.data.DataLoader(test_data, batch_size=self.config.batch_size,
+                                                               shuffle=False, num_workers=self.config.workers,
+                                                               drop_last=True)
+        else:
+         train_data = self.get_images_for_baseLine()
+         train_data = np.array(train_data)
+         test_target= np.zeros(len(train_data))
+         train_data = SatelliteDataset(train_data,test_target,localtransform)
+         train_data_loader = torch.utils.data.DataLoader(train_data, batch_size=self.config.batch_size,
+                                          shuffle=False, num_workers= self.config.workers,drop_last=True)
+         test_data_loader = torch.utils.data.DataLoader(train_data, batch_size=self.config.batch_size,
+                                            shuffle=False, num_workers= self.config.workers,drop_last=True)
+
         # Create the dataloader
         return train_data_loader,test_data_loader
+
     def open_files(self, path):
         import glob
         path_images = Path.joinpath(self.processed_path, path)
@@ -93,35 +111,12 @@ class importData():
             data.append(nor_image)
         return data
 
-    def get_images_array(self, invert=False, include_nir=False):
-        # red_images = self.open_files('T32UPV_20190904T102021\\bandTCIRGB\\Train\\redBand')
-        # blue_images = self.open_files('T32UPV_20190904T102021\\bandTCIRGB\\Train\\blueBand')
-        # greenBand = self.open_files('T32UPV_20190904T102021\\bandTCIRGB\\Train\\greenBand')
-        # if include_nir:
-        #     nirBand = self.open_files('T32UPV_20190904T102021\\bandTCIRGB\\Train\\nirBand')
-        # test = np.stack([np.array(Image.open(Path.joinpath(self.processed_path,'T32UPV_20190904T102021\\bandTCIRGB\\Train\\redBand\\_01_07.tiff'))),
-        #                     np.array(Image.open(Path.joinpath(self.processed_path,'T32UPV_20190904T102021\\bandTCIRGB\\Train\\blueBand\\_01_05.tiff'))),
-        #                     np.array(Image.open(Path.joinpath(self.processed_path,'T32UPV_20190904T102021\\bandTCIRGB\\Train\\greenBand\\_01_04.tiff')))],axis=2)
-        # raw_rgb = np.stack([red_images,
-        #                     blue_images,
-        #                     greenBand], axis=2)
-        #    raw_rgb =(raw_rgb / np.iinfo(raw_rgb.dtype).max)
-        #    raw_rgb = np.swapaxes(raw_rgb, 1, 2)
-        #    raw_rgb = np.swapaxes(raw_rgb,2,3)
-        TCI_images = self.open_Imagefiles_as_array('T32UPV_20190904T102021\\bandTCIRGB\\Train\\TCI')
-        #normalize the data into 0–1 scale
-        #raw_TCI = (TCI_images / np.iinfo(TCI_images.dtype).max)
-        #raw_TCI =np.swapaxes(raw_TCI, 0, 2)
-        # Format is: Samples, Channels, Height, Width
-
-        return TCI_images
-
     def get_images_for_baseLine(self,):
         subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
         for folder in subfolders:
             dataroot = folder+"\\bandTCIRGB\\Train"
             if(self.config.run_TCI):
-                dataroot = dataroot+"\\TCI"
+                dataroot = dataroot+"\\TCI\\TCI"
                 images = self.open_Imagefiles_as_array(dataroot)
             else:
                 redroot = dataroot+"\\redBand"
