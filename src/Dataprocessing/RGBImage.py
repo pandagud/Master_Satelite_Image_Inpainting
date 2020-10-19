@@ -11,7 +11,7 @@ import rasterio
 from rasterio.enums import Resampling
 import numpy as np
 
-class prepRBGdata:
+class prepRGBdata:
     Image.MAX_IMAGE_PIXELS = None
     def __init__(self,config):
         self.localdir = pathlib.Path().absolute().parent

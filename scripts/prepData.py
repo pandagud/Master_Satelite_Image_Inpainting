@@ -1,7 +1,7 @@
 import logging
 import click
 from pathlib import Path
-from src.prepData.RGBImage import prepRBGdata
+from src.Dataprocessing.RGBImage import prepRGBdata
 from src.config_default import TrainingConfig
 from src.config_utillity import update_config
 
@@ -19,7 +19,7 @@ def main(args):
     logger = logging.getLogger(__name__)
     logger.info('making final dataLayer set from raw dataLayer')
 
-    curprepRBGdata= prepRBGdata(config)
+    curprepRBGdata= prepRGBdata(config)
     curprepRBGdata.LoadRGBdata()
 
 

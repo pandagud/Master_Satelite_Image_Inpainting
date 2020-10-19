@@ -90,7 +90,6 @@ class trainInpainting():
                 masks = masks.type(torch.cuda.FloatTensor)
                 masks = 1-masks
                 masks.to(self.device)
-
                 cur_batch_size = len(real)
                 real = real.to(self.device)
                 t = torch.cuda.get_device_properties(0).total_memory

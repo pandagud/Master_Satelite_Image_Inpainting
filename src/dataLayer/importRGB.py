@@ -28,8 +28,6 @@ class SatelliteDataset(Dataset):
 
         return x, y
 
-    def __len__(self):
-        return len(self.data)
 class importData():
     def __init__(self,config):
         self.localdir = pathlib.Path().absolute().parent
@@ -39,19 +37,18 @@ class importData():
 
 
 
-    def getRBGDataLoader(self):
+    def getRGBDataLoader(self):
 
-        localtransform = transforms.Compose([
-            transforms.ToPILImage(),
-            transforms.Resize(self.config.image_size),
-            transforms.CenterCrop( self.config.image_size),
-            transforms.RandomHorizontalFlip(p=0.5),
-            transforms.RandomVerticalFlip(p=0.5),
-            transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
-            transforms.ToTensor(),
-            transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
-        ])
         if self.config.run_TCI:
+            localtransform = transforms.Compose([
+                transforms.Resize(self.config.image_size),
+                transforms.CenterCrop(self.config.image_size),
+                transforms.RandomHorizontalFlip(p=0.5),
+                transforms.RandomVerticalFlip(p=0.5),
+                transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+            ])
             subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
             for folder in subfolders:
                 dataroot = folder + "\\bandTCIRGB"
@@ -66,6 +63,16 @@ class importData():
                                                                drop_last=True)
         else:
          train_data = self.get_images_for_baseLine()
+         localtransform = transforms.Compose([
+             transforms.ToPILImage(),
+             transforms.Resize(self.config.image_size),
+             transforms.CenterCrop(self.config.image_size),
+             transforms.RandomHorizontalFlip(p=0.5),
+             transforms.RandomVerticalFlip(p=0.5),
+             transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
+             transforms.ToTensor(),
+             transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+         ])
          train_data = np.array(train_data)
          test_target= np.zeros(len(train_data))
          train_data = SatelliteDataset(train_data,test_target,localtransform)
@@ -77,13 +84,13 @@ class importData():
         # Create the dataloader
         return train_data_loader,test_data_loader
 
-    def open_files(self, path):
-        import glob
-        path_images = Path.joinpath(self.processed_path, path)
-        str_path = str(path_images)
-        filelist = glob.glob(str_path+'/*.tiff')
-        x = np.array([np.array(Image.open(fname)) for fname in filelist])
-        return x
+    # def open_files(self, path):
+    #     import glob
+    #     path_images = Path.joinpath(self.processed_path, path)
+    #     str_path = str(path_images)
+    #     filelist = glob.glob(str_path+'/*.tiff')
+    #     x = np.array([np.array(Image.open(fname)) for fname in filelist])
+    #     return x
     def open_bandImage_as_array(self,path):
         import glob
         import cv2

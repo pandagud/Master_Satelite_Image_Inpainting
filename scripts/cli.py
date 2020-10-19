@@ -21,7 +21,7 @@ def main(args):
     logger.info('making final dataLayer set from raw dataLayer')
 
     curdatLayer = importData(config)
-    train, test = curdatLayer.getRBGDataLoader()
+    train, test = curdatLayer.getRGBDataLoader()
     curtraingModel=trainInpainting(train,test,generator,discriminator,config)
     curtraingModel.trainGAN()
 
