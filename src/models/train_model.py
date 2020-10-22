@@ -88,7 +88,7 @@ class trainInpainting():
 
                 masks = torch.from_numpy(masks)
                 masks = masks.type(torch.cuda.FloatTensor)
-                masks = 1-masks
+                ##masks = 1-masks
                 masks.to(self.device)
                 cur_batch_size = len(real)
                 real = real.to(self.device)

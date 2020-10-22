@@ -22,7 +22,7 @@ def main(args):
 
     curdatLayer = importData(config)
     train = curdatLayer.get_images_for_baseLine()
-    curBaseLineModel = baselineModel(train)
+    curBaseLineModel = baselineModel(train,config)
     curBaseLineModel.baselineExperiment()
 
 

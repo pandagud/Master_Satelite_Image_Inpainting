@@ -46,8 +46,7 @@ class importData():
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomVerticalFlip(p=0.5),
                 transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
-                transforms.ToTensor(),
-                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5)),
+                transforms.ToTensor(), ## transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
             subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
             for folder in subfolders:
@@ -101,6 +100,8 @@ class importData():
         for fname in filelist:
             image = np.array(Image.open(fname))
             nor_image = (image / np.iinfo(image.dtype).max)
+            ##nor_image = image * 255.0 / image.max()
+            ##nor_image= (4095*(image - np.min(image))/np.ptp(image)).astype(int)  #Normalized [0, 4095] https://stackoverflow.com/questions/1735025/how-to-normalize-a-numpy-array-to-within-a-certain-range
             data.append(nor_image)
         return data
 
@@ -136,8 +137,9 @@ class importData():
                 images =[]
                 for i in totalLen:
                     raw_rgb = np.stack([red_images[i],
-                                     blue_images[i],
-                                     green_images[i]], axis=2)
+                                    green_images[i],
+                                     blue_images[i]
+                                     ], axis=2)
                     images.append(raw_rgb)
             return images
 

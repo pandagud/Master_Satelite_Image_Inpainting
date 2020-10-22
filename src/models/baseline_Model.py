@@ -9,13 +9,25 @@ import torch
 import tqdm
 
 class baselineModel():
-    def __init__(self, testImages):
+    def __init__(self, testImages, config):
         self.batchSize = TrainingConfig.batch_size
         self.testImages = testImages
+        self.config = config
 
-    def show_images(self, fakes,real,real_masked):
+    def show_images(self, fakes,real,real_masked,run_TCI):
         fig, axes = plt.subplots(ncols=3, nrows=1)
         ax = axes.ravel()
+
+        ##normalize the images so the output has the highest possible contrast
+        if run_TCI==False:
+            fakes = fakes * 255.0 / fakes.max()
+            fakes = fakes.astype(np.uint8)
+
+            real = real * 255.0 / real.max()
+            real = real.astype(np.uint8)
+
+            real_masked = real_masked * 255.0 / real_masked.max()
+            real_masked = real_masked.astype(np.uint8)
 
         ax[0].set_title('Original image')
         ax[0].imshow(real)
@@ -56,6 +68,6 @@ class baselineModel():
                 real_masked[mask==1] = 1 #or 0?
             results = inpaint.inpaint_biharmonic(real_masked, mask, multichannel=True)
 
-            self.show_images(results, real, real_masked)
+            self.show_images(results, real, real_masked,self.config.run_TCI)
 
 
