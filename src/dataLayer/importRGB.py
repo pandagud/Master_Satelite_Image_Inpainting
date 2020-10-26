@@ -33,6 +33,7 @@ class importData():
         self.localdir = pathlib.Path().absolute().parent
         self.processed_path = Path.joinpath(self.localdir, 'data\\processed')
         self.config = config
+        self.images = []
 
 
 
@@ -126,6 +127,8 @@ class importData():
             if(self.config.run_TCI):
                 dataroot = dataroot+"\\TCI\\TCI"
                 images = self.open_Imagefiles_as_array(dataroot)
+                for i in range(len(images)):
+                    self.images.append((images[i]))
             else:
                 redroot = dataroot+"\\redBand"
                 red_images = self.open_bandImage_as_array(redroot)
@@ -134,14 +137,14 @@ class importData():
                 greenroot = dataroot+"\\greenBand"
                 green_images = self.open_bandImage_as_array(greenroot)
                 totalLen = range(len(red_images))
-                images =[]
                 for i in totalLen:
                     raw_rgb = np.stack([red_images[i],
                                     green_images[i],
                                      blue_images[i]
                                      ], axis=2)
-                    images.append(raw_rgb)
-            return images
+                    self.images .append(raw_rgb)
+
+        return self.images
 
     # def Load(self):
     #     ## implemented to look into all for folders located in Raw
