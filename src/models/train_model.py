@@ -33,7 +33,7 @@ class trainInpainting():
         self.trainMode = config.trainMode
         self.modelName = config.model_name
 
-    def show_tensor_images(self, image_tensorReal, image_tensorFake, image_tensorMasked, num_images=12,
+    def show_tensor_images(self, image_tensorReal, image_tensorFake, image_tensorMasked, num_images = 12,
                            size=(3, 256, 256)):
         '''
         Function for visualizing images: Given a tensor of images, number of images, and
@@ -46,7 +46,7 @@ class trainInpainting():
         image_tensor3 = (image_tensorMasked + 1) / 2
         image_unflat3 = image_tensor3.detach().cpu()
         image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
-        image_grid = make_grid(image_unflat1[:num_images * 3], nrow=12)
+        image_grid = make_grid(image_unflat1[:num_images * 3], nrow=num_images)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
         plt.show()
 
@@ -57,9 +57,11 @@ class trainInpainting():
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         criterionBCE = nn.BCELoss()
         criterionL1 = nn.L1Loss()
-        display_step = 100
+        display_step = 20
         cur_step = 0
 
+        discriminator_loss = []
+        generator_loss = []
         mean_discriminator_loss = 0
         mean_generator_loss = 0
 
@@ -88,8 +90,9 @@ class trainInpainting():
 
                 masks = torch.from_numpy(masks)
                 masks = masks.type(torch.cuda.FloatTensor)
-                ##masks = 1-masks
+                masks = 1 - masks
                 masks.to(self.device)
+
                 cur_batch_size = len(real)
                 real = real.to(self.device)
                 t = torch.cuda.get_device_properties(0).total_memory
@@ -110,7 +113,7 @@ class trainInpainting():
                 disc_loss = (disc_fake_loss + disc_real_loss) / 2
 
                 # Keep track of the average discriminator loss
-                mean_discriminator_loss += disc_loss.item() / display_step
+                discriminator_loss.append(disc_loss.item())
                 # Update gradients
                 disc_loss.backward(retain_graph=True)
                 # Update optimizer
@@ -130,19 +133,40 @@ class trainInpainting():
                 gen_opt.step()
 
                 # Keep track of the average generator loss
-                mean_generator_loss += gen_loss.item() / display_step
+                generator_loss.append(gen_loss.item())
 
                 ## Visualization code ##
                 if cur_step % display_step == 0 and cur_step > 0 and self.trainMode == False:
+
+                    #if not training, it means we are messing around testing stuff, so no need to save model
+                    #and losses
                     print(
-                        f"Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
+                        f"Step {cur_step}: Generator loss: {gen_loss.item()}, discriminator loss: {disc_loss.item()}")
+
                     self.show_tensor_images(fake_2, real, fake_noise)
-                    mean_generator_loss = 0
-                    mean_discriminator_loss = 0
+
+                    #If in train mode, it should not display images at xx display steps, but only save the model and
+                    #and losses during training
+                elif cur_step % display_step == 0 and cur_step > 0 and self.trainMode == True:
+                    #save model
                     torch.save(gen.state_dict(),
                                Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(epoch) + '.pt'))
-                else:
-                    torch.save(gen.state_dict(), Path.joinpath(self.modelOutputPath,self.modelName + '_' + str(epoch) + '.pt'))
+
+                    # Save loss from generator and discriminator to a file, and reset them, to avoid the list perpetually growing
+                    # Name of file = model name + batch_size +
+                    discriminator_loss = sum(discriminator_loss) / len(discriminator_loss)
+                    generator_loss = sum(generator_loss) / len(generator_loss)
+                    filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + '.txt')
+                    # Creates file if it does not exist, else does nothing
+                    filename.touch(exist_ok=True)
+                    # then open, write and close file again
+                    file = open(filename, 'a+')
+                    file.write('Generator loss: ' + str(generator_loss) + '\n' + 'Discriminator loss: ' + str(
+                        discriminator_loss) + '\n')
+                    file.close()
+
+                    #maybe save images? no need to do it now
+
                 cur_step += 1
 
 

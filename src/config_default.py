@@ -2,7 +2,7 @@ from dataclasses import dataclass
 
 @dataclass
 class TrainingConfig:
-    model_name: str = 'MISSING'
+    model_name: str = 'PartialConvolutionsUnet'
     use_gpu: bool = True
     use_multi_gpu: bool = False
     logging_verbosity: str = 'info'  # Logging verbosity (debug|info|warning|error|fatal).
