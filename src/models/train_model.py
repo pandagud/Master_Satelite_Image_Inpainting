@@ -55,15 +55,14 @@ class trainInpainting():
         gen_opt = torch.optim.Adam(gen.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         disc = self.discriminator().to(self.device)
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
-        criterionBCE = nn.BCELoss()
-        criterionL1 = nn.L1Loss()
-        display_step = 20
+        criterionBCE = nn.BCELoss().cuda()
+        criterionMSE = nn.MSELoss().cuda()
+        display_step = 5
         cur_step = 0
 
         discriminator_loss = []
         generator_loss = []
-        mean_discriminator_loss = 0
-        mean_generator_loss = 0
+        generator_loss_BCE = []
 
         loadAndAgumentMasks = makeMasks.MaskClass(rand_seed=None)
 
@@ -124,9 +123,9 @@ class trainInpainting():
                 # fake_noise_2 = real*masksInverted
                 fake_2 = gen(fake_noise, masks)
                 disc_fake_pred = disc(fake_2)
-                gen_lossMSE = criterionL1(real, fake_2)
-                gen_loss = criterionBCE(disc_fake_pred, torch.ones_like(disc_real_pred))
-                gen_loss = gen_lossMSE + gen_loss
+                gen_lossMSE = criterionMSE(real, fake_2)
+                gen_loss_Adversarial = criterionBCE(disc_fake_pred, torch.ones_like(disc_real_pred))
+                gen_loss = gen_lossMSE + gen_loss_Adversarial
                 # få lavet en loss function, der penalizer pixels ændret udenfor maske
                 # + regner MSE/L1 på alle pixels
                 gen_loss.backward()
@@ -134,6 +133,7 @@ class trainInpainting():
 
                 # Keep track of the average generator loss
                 generator_loss.append(gen_loss.item())
+                generator_loss_BCE.append(gen_loss_Adversarial.item())
 
                 ## Visualization code ##
                 if cur_step % display_step == 0 and cur_step > 0 and self.trainMode == False:
@@ -142,6 +142,23 @@ class trainInpainting():
                     #and losses
                     print(
                         f"Step {cur_step}: Generator loss: {gen_loss.item()}, discriminator loss: {disc_loss.item()}")
+
+                    # Save loss from generator and discriminator to a file, and reset them, to avoid the list perpetually growing
+                    # Name of file = model name + batch_size +
+                    discriminator_loss = [sum(discriminator_loss) / len(discriminator_loss)]
+                    generator_loss = [sum(generator_loss) / len(generator_loss)]
+                    generator_loss_BCE = [sum(generator_loss_BCE) / len(generator_loss_BCE)]
+                    filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + '.txt')
+                    # Creates file if it does not exist, else does nothing
+                    filename.touch(exist_ok=True)
+                    # then open, write and close file again
+                    file = open(filename, 'a+')
+                    file.write('Generator loss: ' + str(generator_loss[0]) + '\n' + 'Generator loss BCE: ' + str(
+                        generator_loss_BCE[0]) + '\n'
+                               + 'Discriminator loss: ' + str(discriminator_loss[0]) + '\n')
+                    file.close()
+
+
 
                     self.show_tensor_images(fake_2, real, fake_noise)
 
@@ -154,15 +171,16 @@ class trainInpainting():
 
                     # Save loss from generator and discriminator to a file, and reset them, to avoid the list perpetually growing
                     # Name of file = model name + batch_size +
-                    discriminator_loss = sum(discriminator_loss) / len(discriminator_loss)
-                    generator_loss = sum(generator_loss) / len(generator_loss)
+                    discriminator_loss = [sum(discriminator_loss) / len(discriminator_loss)]
+                    generator_loss = [sum(generator_loss) / len(generator_loss)]
+                    generator_loss_BCE = [sum(generator_loss_BCE)/len(generator_loss_BCE)]
                     filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + '.txt')
                     # Creates file if it does not exist, else does nothing
                     filename.touch(exist_ok=True)
                     # then open, write and close file again
                     file = open(filename, 'a+')
-                    file.write('Generator loss: ' + str(generator_loss) + '\n' + 'Discriminator loss: ' + str(
-                        discriminator_loss) + '\n')
+                    file.write('Generator loss: ' + str(generator_loss[0]) + '\n' + 'Generator loss BCE: ' + str(generator_loss_BCE[0]) + '\n'
+                               + 'Discriminator loss: ' + str(discriminator_loss[0]) + '\n')
                     file.close()
 
                     #maybe save images? no need to do it now
