@@ -49,6 +49,16 @@ class trainInpainting():
         image_grid = make_grid(image_unflat1[:num_images * 3], nrow=num_images)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
         plt.show()
+    def saveToTxt(self,generatorlossBCE, generatorLoss, discLossBCE):
+        #Function to save to txt file.
+        filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + '.txt')
+        # Creates file if it does not exist, else does nothing
+        filename.touch(exist_ok=True)
+        # then open, write and close file again
+        file = open(filename, 'a+')
+        file.write('Generator loss: ' + str(generatorLoss[0]) + '\n' + 'Generator loss BCE: ' + str(
+            generatorlossBCE[0]) + '\n' + 'Discriminator loss: ' + str(discLossBCE[0]) + '\n')
+        file.close()
 
     def trainGAN(self):
         gen = self.generator().to(self.device)
@@ -148,17 +158,6 @@ class trainInpainting():
                     discriminator_loss = [sum(discriminator_loss) / len(discriminator_loss)]
                     generator_loss = [sum(generator_loss) / len(generator_loss)]
                     generator_loss_BCE = [sum(generator_loss_BCE) / len(generator_loss_BCE)]
-                    filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + '.txt')
-                    # Creates file if it does not exist, else does nothing
-                    filename.touch(exist_ok=True)
-                    # then open, write and close file again
-                    file = open(filename, 'a+')
-                    file.write('Generator loss: ' + str(generator_loss[0]) + '\n' + 'Generator loss BCE: ' + str(
-                        generator_loss_BCE[0]) + '\n'
-                               + 'Discriminator loss: ' + str(discriminator_loss[0]) + '\n')
-                    file.close()
-
-
 
                     self.show_tensor_images(fake_2, real, fake_noise)
 
@@ -174,16 +173,8 @@ class trainInpainting():
                     discriminator_loss = [sum(discriminator_loss) / len(discriminator_loss)]
                     generator_loss = [sum(generator_loss) / len(generator_loss)]
                     generator_loss_BCE = [sum(generator_loss_BCE)/len(generator_loss_BCE)]
-                    filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + '.txt')
-                    # Creates file if it does not exist, else does nothing
-                    filename.touch(exist_ok=True)
-                    # then open, write and close file again
-                    file = open(filename, 'a+')
-                    file.write('Generator loss: ' + str(generator_loss[0]) + '\n' + 'Generator loss BCE: ' + str(generator_loss_BCE[0]) + '\n'
-                               + 'Discriminator loss: ' + str(discriminator_loss[0]) + '\n')
-                    file.close()
+                    self.saveToTxt(generator_loss_BCE, generator_loss_BCE, discriminator_loss)
 
-                    #maybe save images? no need to do it now
 
                 cur_step += 1
 
