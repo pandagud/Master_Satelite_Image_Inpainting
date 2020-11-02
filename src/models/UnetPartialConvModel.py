@@ -227,3 +227,57 @@ class discriminator(nn.Module):
         conv8 = self.conv8(conv7)
 
         return conv8
+
+class criticWgan(nn.Module):
+
+        # discriminator model
+        def __init__(self):
+            super(criticWgan, self).__init__()
+
+            self.conv1 = self.features = nn.Sequential(
+                nn.Conv2d(in_channels=3, out_channels=64, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+
+            self.conv2 = nn.Sequential(
+                nn.Conv2d(in_channels=64, out_channels=128, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+
+            self.conv3 = nn.Sequential(
+                nn.Conv2d(in_channels=128, out_channels=256, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+            self.conv4 = nn.Sequential(
+                nn.Conv2d(in_channels=256, out_channels=512, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+            self.conv5 = nn.Sequential(
+                nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+            self.conv6 = nn.Sequential(
+                nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+            self.conv7 = nn.Sequential(
+                nn.Conv2d(in_channels=512, out_channels=512, kernel_size=3, stride=2, padding=1),
+                nn.LeakyReLU(0.2, inplace=True),
+            )
+
+            self.conv8 = nn.Sequential(
+
+                nn.Conv2d(in_channels=512, out_channels=1, kernel_size=3, stride=2, padding=1)
+            )
+
+        def forward(self, x):
+            conv1 = self.conv1(x)
+            conv2 = self.conv2(conv1)
+            conv3 = self.conv3(conv2)
+            conv4 = self.conv4(conv3)
+            conv5 = self.conv5(conv4)
+            conv6 = self.conv6(conv5)
+            conv7 = self.conv7(conv6)
+            conv8 = self.conv8(conv7)
+
+            return conv8

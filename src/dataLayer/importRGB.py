@@ -47,7 +47,8 @@ class importData():
                 transforms.RandomHorizontalFlip(p=0.5),
                 transforms.RandomVerticalFlip(p=0.5),
                 transforms.ColorJitter(brightness=0.2, saturation=0.2, contrast=0.2),
-                transforms.ToTensor(), ## transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
+                transforms.ToTensor(),
+                transforms.Normalize((0.5, 0.5, 0.5), (0.5, 0.5, 0.5))
             ])
             subfolders = [f.path for f in os.scandir(self.processed_path) if f.is_dir()]
             for folder in subfolders:

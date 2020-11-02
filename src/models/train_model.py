@@ -104,12 +104,12 @@ class trainInpainting():
 
                 cur_batch_size = len(real)
                 real = real.to(self.device)
-                t = torch.cuda.get_device_properties(0).total_memory
-                c = torch.cuda.memory_cached(0)
-                a = torch.cuda.memory_allocated(0)
-                print(t)
-                print(c)
-                print(a)
+                #t = torch.cuda.get_device_properties(0).total_memory
+                #c = torch.cuda.memory_cached(0)
+                #a = torch.cuda.memory_allocated(0)
+                #print(t)
+                #print(c)
+                #print(a)
                 ## Update discriminator ##
                 disc_opt.zero_grad()
                 # lav om så den kører på masker
@@ -178,20 +178,3 @@ class trainInpainting():
 
                 cur_step += 1
 
-
-# Kommer ikke til at du, da denne training phase, kører på random noise, og ikke på maskerede satelit billeder
-# https://docs.fast.ai/migrating_pytorch
-# device = torch.device("cuda:0" if (torch.cuda.is_available() and numberGPU > 0) else "cpu")
-# learner = GANLearner.wgan(self.dataloader, self.generator, self.discriminator, opt_func=Adam, cbs=CudaCallback)
-##Using CudaCallBack if we use normal dataloaders, if we use fastAI, no need for this callback
-# learner.recorder.train_metrics = True #pas, bør returnere metrics for hvordan træningen gik?
-# learner.recorder.valid_metrics = False
-# learner.fit(self.epochs, self.lr) #wd? cbs?
-# learner.show_results(max_n=9, ds_idx=0)
-##Outputs
-# learner.predict(self.testImageDataloader) #At whatever index the test images is
-# learner.show_results()
-
-# Training
-# learner.save() Can save model and optimizer state
-# learner.load() load model and optimizer state
