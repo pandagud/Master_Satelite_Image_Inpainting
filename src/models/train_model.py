@@ -32,6 +32,7 @@ class trainInpainting():
         self.modelOutputPath = Path.joinpath(self.localdir, 'models')
         self.trainMode = config.trainMode
         self.modelName = config.model_name
+        self.save_model_step = config.save_model_step
 
     def show_tensor_images(self, image_tensorReal, image_tensorFake, image_tensorMasked, num_images = 12,
                            size=(3, 256, 256)):
@@ -67,7 +68,7 @@ class trainInpainting():
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         criterionBCE = nn.BCELoss().cuda()
         criterionMSE = nn.MSELoss().cuda()
-        display_step = 5
+        #display_step = 5
         cur_step = 0
 
         discriminator_loss = []
@@ -146,7 +147,7 @@ class trainInpainting():
                 generator_loss_BCE.append(gen_loss_Adversarial.item())
 
                 ## Visualization code ##
-                if cur_step % display_step == 0 and cur_step > 0 and self.trainMode == False:
+                if cur_step % self.save_model_step == 0 and cur_step > 0 and self.trainMode == False:
 
                     #if not training, it means we are messing around testing stuff, so no need to save model
                     #and losses
@@ -163,7 +164,7 @@ class trainInpainting():
 
                     #If in train mode, it should not display images at xx display steps, but only save the model and
                     #and losses during training
-                elif cur_step % display_step == 0 and cur_step > 0 and self.trainMode == True:
+                elif cur_step % self.save_model_step == 0 and cur_step > 0 and self.trainMode == True:
                     #save model
                     torch.save(gen.state_dict(),
                                Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(epoch) + '.pt'))
