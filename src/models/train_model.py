@@ -11,6 +11,7 @@ from tqdm.auto import tqdm
 import numpy as np
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
+from torchvision.transforms import transforms
 from src.dataLayer import makeMasks
 from pathlib import Path
 
@@ -32,12 +33,47 @@ class trainInpainting():
         self.modelOutputPath = Path.joinpath(self.localdir, 'models')
         self.trainMode = config.trainMode
         self.modelName = config.model_name
+        self.run_TCI = config.run_TCI
 
-    def show_tensor_images(self, image_tensorReal, image_tensorFake, image_tensorMasked, num_images=12,
+    def image_tensor_batch_to_list_of_pil_images(self,image_batch, resize_resolution=None):
+        """Creates a list of PIL images from a PyTorch tensor batch of 3-channel images.
+        Creates a list of PIL images from a PyTorch tensor batch of 3-channel images.
+        Args:
+            image_batch: PyTorch tensor image batch.
+            resize_resolution: Resolution which PIL images will be resized to.
+        Returns:
+            image_pil_list: List of PIL images.
+        """
+        # Ensure that there is a batch dimension
+        if len(image_batch.shape) < 4:  # If there is only a single image in the batch
+            image_batch = image_batch.unsqueeze(0)  # Add extra dimension (batch size dimension)
+
+        # Loop over the batch and append pil images to list
+        image_pil_list = []
+        num_images = image_batch.shape[0]
+        for i in range(num_images):
+            image_tensor = image_batch[i, :, :, :]
+            image_pil = transforms.ToPILImage()(image_tensor.cpu()).convert('RGB')
+            if resize_resolution is not None:
+                image_pil = image_pil.resize(resize_resolution, Image.CUBIC)
+            image_pil_list.append(image_pil)
+
+        return image_pil_list
+
+    def tensor_to_numpy(self,image_batch):
+        images = []
+        for i in image_batch:
+            image = i.detach().cpu().numpy()
+            image_numpy = image.astype(np.uint8)
+            images.append(image_numpy)
+        return images
+
+    def show_tensor_images(self, image_tensorReal, image_tensorFake, image_tensorMasked,
                            size=(3, 256, 256)):
+
         '''
-        Function for visualizing images: Given a tensor of images, number of images, and
-        size per image, plots and prints the images in an uniform grid.
+              Function for visualizing images: Given a tensor of images, number of images, and
+              size per image, plots and prints the images in an uniform grid.
         '''
         image_tensor1 = (image_tensorReal + 1) / 2
         image_unflat1 = image_tensor1.detach().cpu()
@@ -46,7 +82,7 @@ class trainInpainting():
         image_tensor3 = (image_tensorMasked + 1) / 2
         image_unflat3 = image_tensor3.detach().cpu()
         image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
-        image_grid = make_grid(image_unflat1[:num_images * 3], nrow=12)
+        image_grid = make_grid(image_unflat1[:4 * 3], nrow=4)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
         plt.show()
 
@@ -57,7 +93,7 @@ class trainInpainting():
         disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
         criterionBCE = nn.BCELoss()
         criterionL1 = nn.L1Loss()
-        display_step = 100
+        display_step = 4
         cur_step = 0
 
         mean_discriminator_loss = 0
@@ -136,7 +172,7 @@ class trainInpainting():
                 if cur_step % display_step == 0 and cur_step > 0 and self.trainMode == False:
                     print(
                         f"Step {cur_step}: Generator loss: {mean_generator_loss}, discriminator loss: {mean_discriminator_loss}")
-                    self.show_tensor_images(fake_2, real, fake_noise)
+                    self.show_tensor_images(real, fake_2, fake_noise)
                     mean_generator_loss = 0
                     mean_discriminator_loss = 0
                     torch.save(gen.state_dict(),
@@ -162,3 +198,21 @@ class trainInpainting():
 # Training
 # learner.save() Can save model and optimizer state
 # learner.load() load model and optimizer state
+
+class UnNormalize(object):
+    def __init__(self, mean, std):
+        self.mean = mean
+        self.std = std
+
+    def __call__(self, tensor):
+        """
+        Args:
+            tensor (Tensor): Tensor image of size (C, H, W) to be normalized.
+        Returns:
+            https://stackoverflow.com/questions/61368632/display-image-in-a-pil-format-from-torch-tensor
+            Tensor: Normalized image.
+        """
+        for t, m, s in zip(tensor, self.mean, self.std):
+            t.mul_(s).add_(m)
+            # The normalize code -> t.sub_(m).div_(s)
+        return tensor
