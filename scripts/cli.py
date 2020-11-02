@@ -3,7 +3,8 @@ import click
 from pathlib import Path
 from src.dataLayer.importRGB import importData
 from src.models.train_model import trainInpainting
-from src.models.UnetPartialConvModel import generator,discriminator
+from src.models.train_Wgan_model import trainInpaintingWgan
+from src.models.UnetPartialConvModel import generator,discriminator,criticWgan
 from src.config_default import TrainingConfig
 from src.config_utillity import update_config
 
@@ -22,8 +23,12 @@ def main(args):
 
     curdatLayer = importData(config)
     train, test = curdatLayer.getRGBDataLoader()
-    curtraingModel=trainInpainting(train,test,generator,discriminator,config)
-    curtraingModel.trainGAN()
+    if config.model_name == 'PartialConvolutions':
+        curtraingModel=trainInpainting(train,test,generator,discriminator,config)
+        curtraingModel.trainGAN()
+    elif config.model_name == 'ParTialConvolutionsWgan':
+        curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)
+        curtraingModel.trainGAN()
 
 
 
