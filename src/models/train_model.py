@@ -265,16 +265,36 @@ class trainInpainting():
         for epoch in range(self.epochs):
             # Dataloader returns the batches
             for temp0,temp1,temp2,temp3,temp4 in tqdm(self.dataloader):
-                masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                masks0 = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
                 # masksInverted = 1-masks
                 # masksInverted = torch.from_numpy(masksInverted)
                 # masksInverted = masksInverted.type(torch.cuda.FloatTensor)
                 # masksInverted.to(self.device)
+                masks0 = torch.from_numpy(masks0)
+                masks0 = masks0.type(torch.cuda.FloatTensor)
+                masks0 = 1 - masks0
 
-                masks = torch.from_numpy(masks)
-                masks = masks.type(torch.cuda.FloatTensor)
-                masks = 1 - masks
-                masks.to(self.device)
+                masks1 = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                masks1 = torch.from_numpy(masks1)
+                masks1 = masks1.type(torch.cuda.FloatTensor)
+                masks1 = 1 - masks1
+
+                masks2 = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                masks2 = torch.from_numpy(masks2)
+                masks2 = masks2.type(torch.cuda.FloatTensor)
+                masks2 = 1 - masks2
+
+                masks3 = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                masks3 = torch.from_numpy(masks3)
+                masks3 = masks3.type(torch.cuda.FloatTensor)
+                masks3 = 1 - masks3
+
+                masks4 = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                masks4 = torch.from_numpy(masks4)
+                masks4 = masks4.type(torch.cuda.FloatTensor)
+                masks4 = 1 - masks4
+
+                masks =torch.cat((masks0,masks1,masks2,masks3,masks4),1).to(self.device)
                 real = torch.cat((temp0[0],temp1[0],temp2[0],temp3[0],temp4[0],),1).to(self.device)
                 #real = real.to(self.device)
                 #t = torch.cuda.get_device_properties(0).total_memory
