@@ -82,7 +82,7 @@ class trainInpainting():
         image_tensor3 = (image_tensorMasked + 1) / 2
         image_unflat3 = image_tensor3.detach().cpu()
         image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
-        image_grid = make_grid(image_unflat1[:4 * 3], nrow=4)
+        image_grid = make_grid(image_unflat1[:self.batchSize * 3], nrow=self.batchSize)
         plt.imshow(image_grid.permute(1, 2, 0).squeeze())
         plt.show()
     def saveToTxt(self,generatorlossBCE, generatorLoss, discLossBCE):
