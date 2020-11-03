@@ -19,7 +19,7 @@ class prepRGBdata:
         self.localdir = pathlib.Path().absolute().parent
         self.data_path = Path.joinpath(self.localdir, 'data\\raw')
         self.iterim_path = Path.joinpath(self.localdir,'data\\interim')
-        self.processed_path = Path.joinpath(self.localdir,'data\\processed\\Frankrig')
+        self.processed_path = Path.joinpath(self.localdir,'data\\processed\\Polen')
         self.number_tiles = config.number_tiles
         self.image_size = config.image_size
         self.config = config

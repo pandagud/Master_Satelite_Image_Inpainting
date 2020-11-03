@@ -33,6 +33,7 @@ class trainInpainting():
         self.trainMode = config.trainMode
         self.modelName = config.model_name
         self.run_TCI = config.run_TCI
+        self.save_model_step = config.save_model_step
 
     def image_tensor_batch_to_list_of_pil_images(self,image_batch, resize_resolution=None):
         """Creates a list of PIL images from a PyTorch tensor batch of 3-channel images.
@@ -58,7 +59,6 @@ class trainInpainting():
             image_pil_list.append(image_pil)
 
         return image_pil_list
-        self.save_model_step = config.save_model_step
 
     def tensor_to_numpy(self,image_batch):
         images = []
@@ -232,3 +232,121 @@ class trainInpainting():
 # Training
 # learner.save() Can save model and optimizer state
 # learner.load() load model and optimizer state
+
+    def trainTemporalGAN(self):
+        gen = self.generator().to(self.device)
+        gen_opt = torch.optim.Adam(gen.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
+        disc = self.discriminator().to(self.device)
+        disc_opt = torch.optim.Adam(disc.parameters(), lr=self.lr, betas=(self.beta1, self.beta2))
+        display_step = 4
+        criterionBCE = nn.BCELoss().cuda()
+        criterionMSE = nn.MSELoss().cuda()
+        #display_step = 5
+        cur_step = 0
+
+        discriminator_loss = []
+        generator_loss = []
+        generator_loss_BCE = []
+
+        loadAndAgumentMasks = makeMasks.MaskClass(rand_seed=None)
+
+        # måske nn.Conv2d med vægte ikke virker når vi bruger partconv2d, i så fald måske tilføje
+        # or isinstance(m,partConv2d) og læg partconv2d et sted hvor den er accessible.
+        def weights_init(m):
+            if isinstance(m, nn.Conv2d) or isinstance(m, nn.ConvTranspose2d):
+                torch.nn.init.normal_(m.weight, 0.0, 0.02)
+            if isinstance(m, nn.BatchNorm2d):
+                torch.nn.init.normal_(m.weight, 0.0, 0.02)
+                torch.nn.init.constant_(m.bias, 0)
+
+        gen = gen.apply(weights_init)
+        disc = disc.apply(weights_init)
+
+        for epoch in range(self.epochs):
+            # Dataloader returns the batches
+            for temp0,temp1,temp2,temp3,temp4 in tqdm(self.dataloader):
+                masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
+                # masksInverted = 1-masks
+                # masksInverted = torch.from_numpy(masksInverted)
+                # masksInverted = masksInverted.type(torch.cuda.FloatTensor)
+                # masksInverted.to(self.device)
+
+                masks = torch.from_numpy(masks)
+                masks = masks.type(torch.cuda.FloatTensor)
+                masks = 1 - masks
+                masks.to(self.device)
+                real = torch.cat((temp0[0],temp1[0],temp2[0],temp3[0],temp4[0],),1).to(self.device)
+                #real = real.to(self.device)
+                #t = torch.cuda.get_device_properties(0).total_memory
+                #c = torch.cuda.memory_cached(0)
+                #a = torch.cuda.memory_allocated(0)
+                #print(t)
+                #print(c)
+                #print(a)
+                ## Update discriminator ##
+                disc_opt.zero_grad()
+                # lav om så den kører på masker
+                fake_noise = torch.mul(real, masks)
+                fake = gen(fake_noise, masks)
+                disc_fake_pred = disc(fake.detach())
+                disc_fake_loss = criterionBCE(disc_fake_pred, torch.zeros_like(disc_fake_pred))
+                disc_real_pred = disc(real)
+                disc_real_loss = criterionBCE(disc_real_pred, torch.ones_like(disc_real_pred))
+                disc_loss = (disc_fake_loss + disc_real_loss) / 2
+
+                # Keep track of the average discriminator loss
+                discriminator_loss.append(disc_loss.item())
+                # Update gradients
+                disc_loss.backward(retain_graph=True)
+                # Update optimizer
+                disc_opt.step()
+
+                ## Update generator ##
+                gen_opt.zero_grad()
+                # fake_noise_2 = real*masksInverted
+                fake_2 = gen(fake_noise, masks)
+                disc_fake_pred = disc(fake_2)
+                gen_lossMSE = criterionMSE(real, fake_2)
+                gen_loss_Adversarial = criterionBCE(disc_fake_pred, torch.ones_like(disc_real_pred))
+                gen_loss = gen_lossMSE + gen_loss_Adversarial
+                # få lavet en loss function, der penalizer pixels ændret udenfor maske
+                # + regner MSE/L1 på alle pixels
+                gen_loss.backward()
+                gen_opt.step()
+
+                # Keep track of the average generator loss
+                generator_loss.append(gen_loss.item())
+                generator_loss_BCE.append(gen_loss_Adversarial.item())
+
+                ## Visualization code ##
+                if cur_step % self.save_model_step == 0 and cur_step > 0 and self.trainMode == False:
+
+                    #if not training, it means we are messing around testing stuff, so no need to save model
+                    #and losses
+                    print(
+                        f"Step {cur_step}: Generator loss: {gen_loss.item()}, discriminator loss: {disc_loss.item()}")
+
+                    # Save loss from generator and discriminator to a file, and reset them, to avoid the list perpetually growing
+                    # Name of file = model name + batch_size +
+                    discriminator_loss = [sum(discriminator_loss) / len(discriminator_loss)]
+                    generator_loss = [sum(generator_loss) / len(generator_loss)]
+                    generator_loss_BCE = [sum(generator_loss_BCE) / len(generator_loss_BCE)]
+
+                    self.show_tensor_images(fake_2, real, fake_noise)
+
+                    #If in train mode, it should not display images at xx display steps, but only save the model and
+                    #and losses during training
+                elif cur_step % self.save_model_step == 0 and cur_step > 0 and self.trainMode == True:
+                    #save model
+                    torch.save(gen.state_dict(),
+                               Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(epoch) + '.pt'))
+
+                    # Save loss from generator and discriminator to a file, and reset them, to avoid the list perpetually growing
+                    # Name of file = model name + batch_size +
+                    discriminator_loss = [sum(discriminator_loss) / len(discriminator_loss)]
+                    generator_loss = [sum(generator_loss) / len(generator_loss)]
+                    generator_loss_BCE = [sum(generator_loss_BCE)/len(generator_loss_BCE)]
+                    self.saveToTxt(generator_loss_BCE, generator_loss_BCE, discriminator_loss)
+
+
+                cur_step += 1

@@ -27,4 +27,4 @@ class TrainingConfig:
     pathToModel:str = 'm'
     n_critic = 2
     lambda_gp = 10
-    save_model_step = 2000
+    save_model_step:int = 4
