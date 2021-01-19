@@ -1,0 +1,21 @@
+Sphinx
+tqdm>=4.4.47
+python-dotenv>=0.14.0
+image-slicer~=2.1.1
+tensorboard~=2.3.0
+tensorflow-estimator~=2.3.0
+torch==1.6.0
+opencv-python>=4.4.0.42
+torchvision==0.7.0
+scipy~=1.5.2
+numpy~=1.19.2
+matplotlib~=3.2.0
+Pillow~=7.2.0
+setuptools~=47.1.0
+##GDAL Req rasterio>=1.1.7
+click~=7.1.2
+seaborn>=0.10.1
+pathlib>=1.0.1
+scikit-image>=0.16.1
+polyaxon_client==0.6.1
+albumentations==0.5.1

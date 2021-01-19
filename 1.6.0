@@ -1,0 +1,2 @@
+Requirement already satisfied: torch in c:\users\panda\anaconda3\envs\snapshot\lib\site-packages (1.2.0)
+Requirement already satisfied: numpy in c:\users\panda\anaconda3\envs\snapshot\lib\site-packages (from torch) (1.19.1)
