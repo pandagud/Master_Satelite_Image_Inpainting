@@ -42,13 +42,13 @@ def main(args):
     curdatLayer = importData(config)
     train, test = curdatLayer.getRGBDataLoader()
     local_model_path= ""
-    # if config.model_name == 'PartialConvolutions':
-    #     curtraingModel=trainInpainting(train,test,generator,discriminator,config)
-    #     local_model_path=curtraingModel.trainGAN()
-    # elif config.model_name == 'PartialConvolutionsWgan':
-    #     curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)
-    #     local_model_path=curtraingModel.trainGAN()
-    local_model_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_200.pt")
+    if config.model_name == 'PartialConvolutions':
+        curtraingModel=trainInpainting(train,test,generator,discriminator,config)
+        local_model_path=curtraingModel.trainGAN()
+    elif config.model_name == 'PartialConvolutionsWgan':
+        curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)
+        local_model_path=curtraingModel.trainGAN()
+    #local_model_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_200.pt")
     if config.run_polyaxon:
         model_path =inpainting_data_path /'models'
         modelOutputPath = Path.joinpath(model_path, 'OutputModels')
