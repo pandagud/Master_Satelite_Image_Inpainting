@@ -122,7 +122,8 @@ class UNetUp(nn.Module):
         if falseInterpolate:
             x = interpolate(x, scale_factor=2, mode='nearest')
         out = torch.cat((x, skip_input), dim=1)
-        mask = interpolate(mask1, scale_factor=2, mode='nearest')
+        if falseInterpolate:
+            mask = interpolate(mask1, scale_factor=2, mode='nearest')
         mask = torch.cat((mask, mask2), dim=1)
 
         out,mask = self.conv(out, mask_in=mask)
