@@ -45,4 +45,4 @@ params:
   styleValue: 480.0
 
 run:
-  cmd: python -u scripts/baseGanWithOtherLayers.py batch_size:{{ batch_size_input }} trainMode:True run_polyaxon:True epochs:201 save_model_step:50 model_name:PartialConvolutionsWganLess lambda_gp:10 lr:{{lr}} beta1:{{b1}} lambdaStyle:{{styleValue}} trainFrozen:True frozenEpochs:101
+  cmd: python -u scripts/baseGanWithOtherLayers.py batch_size:{{ batch_size_input }} trainMode:True run_polyaxon:True epochs:201 save_model_step:50 model_name:PartialConvolutionsWganMore lambda_gp:10 lr:{{lr}} beta1:{{b1}} lambdaStyle:{{styleValue}} trainFrozen:True frozenEpochs:101
