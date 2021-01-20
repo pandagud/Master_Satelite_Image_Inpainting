@@ -11,7 +11,7 @@ import glob
 from src.shared.convert import convertToFloat32
 from src.shared.convert import _normalize
 from src.evalMetrics.eval_helper import remove_outliers
-
+import random
 
 class AlbumentationImageDataset(Dataset):
     def __init__(self, image_list,transform=None):
@@ -29,6 +29,51 @@ class AlbumentationImageDataset(Dataset):
             image = self.transform(image=np.array(image))['image']
         image = torch.from_numpy(np.array(image).astype(np.float32)).transpose(0, 1).transpose(0, 2).contiguous()
         return image
+
+
+class TCIDatasetLoader():
+    def __init__(self, config):
+        if config.run_polyaxon:
+            self.localdir = config.data_path
+        else:
+            self.localdir = pathlib.Path().absolute().parent
+        self.processed_path = self.localdir / 'data' / 'processed'
+        self.tci_train_path=self.localdir /'data' /'TCI' / 'train'/'train'
+        self.tci_test_path = self.localdir / 'data' / 'TCI' / 'test' / 'test'
+        self.config = config
+        self.images = []
+        self.names = []
+    def getTCIDataloder(self):
+        path = "E:\Speciale\data6_other_paper_dataset\clear"
+        import glob
+        import cv2
+        path_images = Path(path)
+        str_path = str(path_images)
+        filelist = glob.glob(str_path + '/*.jpg')
+        data = []
+        for fname in filelist:
+            image = cv2.imread(fname, -1)
+            data.append(image)
+        random.shuffle(data)
+        train= data[:int((len(data) + 1) * .80)]  # Remaining 80% to training set
+        test = data[int((len(data) + 1) * .80):]  # Splits 20% data to test set
+        count = 0
+        path_train = r"E:\Speciale\data6_other_paper_dataset\train\train_"
+        for i in train:
+            cv2.imwrite(path_train+str(count)+".jpg",i)
+            count = count+1
+        count = 0
+        path_train = r"E:\Speciale\data6_other_paper_dataset\test\test_"
+        for i in test:
+            cv2.imwrite(path_train+str(count)+".jpg",i)
+            count = count+1
+        train_transform = A.Compose([
+            A.transforms.HorizontalFlip(p=0.5),
+            A.transforms.VerticalFlip(p=0.5),
+        ])
+        test_trainsform = A.Compose([])
+        train_data = Dataset.ImageFolder(self.tci_train_path)
+        test_data = Dataset.ImageFolder(self.tci_test_path)
 
 class NIRImageDataset(Dataset):
     def __init__(self, image_list, NIR_list, transform=None):
