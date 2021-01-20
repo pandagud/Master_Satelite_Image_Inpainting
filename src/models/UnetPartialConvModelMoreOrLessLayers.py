@@ -118,8 +118,9 @@ class UNetUp(nn.Module):
         else:
             self.seq = nn.Sequential(nn.BatchNorm2d(out_size), nn.LeakyReLU(0.2, inplace=True)) #Added inplace
 
-    def forward(self, x, skip_input, mask1, mask2):
-        x = interpolate(x, scale_factor=2, mode='nearest')
+    def forward(self, x, skip_input, mask1, mask2, falseInterpolate=True):
+        if falseInterpolate:
+            x = interpolate(x, scale_factor=2, mode='nearest')
         out = torch.cat((x, skip_input), dim=1)
         mask = interpolate(mask1, scale_factor=2, mode='nearest')
         mask = torch.cat((mask, mask2), dim=1)
@@ -198,8 +199,9 @@ class generatorMore(nn.Module):
         x8, mask8 = self.down8(x7, mask_in=mask7)
         x9, mask9 = self.down9(x8, mask_in=mask8)
         x10, mask10 = self.down10(x9, mask_in=mask9)
-        x11, mask11 = self.up01(x10, x9, mask10, mask9)
-        x12, mask12 = self.up02(x11, x8, mask11, mask8)
+
+        x11, mask11 = self.up01(x10, x9, mask10, mask9, falseInterpolate=False)
+        x12, mask12 = self.up02(x11, x8, mask11, mask8, falseInterpolate=False)
         x13, mask13 = self.up1(x12, x7, mask12, mask7)
         x14, mask14 = self.up2(x13, x6, mask13, mask6)
         x15, mask15 = self.up3(x14, x5, mask14, mask5)
