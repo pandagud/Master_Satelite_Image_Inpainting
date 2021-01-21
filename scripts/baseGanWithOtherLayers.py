@@ -44,7 +44,7 @@ def main(args):
     train, test = curdatLayer.getRGBDataLoader()
     local_model_path= ""
     if config.model_name == 'PartialConvolutionsWganMore':
-        curtraingModel = trainInpainting(train,test,generatorMore,criticWgan,config)
+        curtraingModel = trainInpaintingWgan(train,test,generatorMore,criticWgan,config)
         local_model_path = curtraingModel.trainGAN()
     elif config.model_name == 'PartialConvolutionsWganLess':
         curtraingModel = trainInpaintingWgan(train, test, generatorLess, criticWgan, config)
