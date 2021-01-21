@@ -136,8 +136,8 @@ class generator(nn.Module):
     def __init__(self):
         super(generator, self).__init__()
 
-        self.down1 = UNetDown(3, 64, 3, normalize=False)  # self.down(input)??
-        self.down2 = UNetDown(64, 128, 3)
+        self.down1 = UNetDown(3, 64, 7, normalize=False)  # self.down(input)??
+        self.down2 = UNetDown(64, 128, 5)
         self.down3 = UNetDown(128, 256, 3)
         self.down4 = UNetDown(256, 512, 3)
         self.down5 = UNetDown(512, 512, 3)
