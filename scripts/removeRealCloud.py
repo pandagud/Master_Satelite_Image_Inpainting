@@ -59,13 +59,12 @@ if __name__ == '__main__':
 
         cv2.imshow('image', img2)
 
-    #C:\Users\Morten From\Downloads\raw_cloud\raw_cloud
-    #T35UNB_20200617T092029_train_1450
+
     img = cv2.imread(
-        r"C:\Users\Morten From\Downloads\raw_cloud\raw_cloud\T35UNB_20200617T092029_train_1450")
+        r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\data\processed\Remove_cloud\T35UNB_20200617T092029\bandTCIRGB\Test\normalizedRGBImages\original_0RGB\T35UNB_20200617T092029_train_1450.tiff")
     model_path = (
         r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_901.pt")
-    local_test_path = Path(r"C:\Users\Morten From\Downloads\raw_cloud\raw_cloud")
+    local_test_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\images")
     cv2.namedWindow('image')
     cv2.setMouseCallback('image', draw_roi)
     while True:
