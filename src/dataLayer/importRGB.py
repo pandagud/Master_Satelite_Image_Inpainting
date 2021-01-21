@@ -40,8 +40,8 @@ class TCIDatasetLoader():
         else:
             self.localdir = pathlib.Path().absolute().parent
         self.processed_path = self.localdir / 'data' / 'processed'
-        self.tci_train_path=self.localdir /'data' /'other_data'/ 'train_folder' / 'train'
-        self.tci_test_path = self.localdir / 'data' / 'other_data' / 'test_folder' / 'test'
+        self.tci_train_path=self.localdir /'data' /'other_data'/ 'train_folder'
+        self.tci_test_path = self.localdir / 'data' / 'other_data' / 'test_folder'
         self.config = config
         self.images = []
         self.names = []
