@@ -53,8 +53,8 @@ class TCIDatasetLoader():
             transforms.ToTensor()
         ])
         test_trainsform = transforms.Compose([transforms.ToTensor()])
-        train_data = torchvision.datasets.ImageFolder(r"E:\Speciale\data6_other_paper_dataset\train_folder - Copy",train_transform)
-        test_data = torchvision.datasets.ImageFolder(r"E:\Speciale\data6_other_paper_dataset\test_folder - Copy",test_trainsform)
+        train_data = torchvision.datasets.ImageFolder(self.tci_train_path,train_transform)
+        test_data = torchvision.datasets.ImageFolder(self.tci_test_path,test_trainsform)
         train_data_loader = torch.utils.data.DataLoader(train_data,
                                                         batch_size=self.config.batch_size,
                                                         shuffle=True, num_workers=self.config.workers,
