@@ -14,4 +14,4 @@ def remove_outliers_eval(img_array):
     percent_range = [1, 99]
     highestValue_img1 = np.percentile(img_array, percent_range)
     img1 = np.clip(img_array, highestValue_img1.min(), highestValue_img1.max())
-    return img1
+    return img1.astype(np.uint8)
