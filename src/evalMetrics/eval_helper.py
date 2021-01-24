@@ -2,7 +2,7 @@ import numpy as np
 
 def convert_tensor_to_nparray(tensor):
     tensor = tensor.detach().cpu().numpy()
-    return np.transpose(tensor, (1, 2, 0)).astype(np.float32)
+    return np.transpose(tensor, (1, 2, 0)).astype(np.uint8)
 
 def remove_outliers(img_array):
     percent_range = [1, 99]

@@ -5,7 +5,7 @@ from pathlib import Path
 from os import remove
 from os import listdir
 from os.path import isfile, join
-import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import glob
 import shutil
 from torchvision.utils import make_grid
@@ -13,6 +13,8 @@ from torchvision.utils import save_image
 from src.shared.convert import convertToUint16
 from src.shared.visualization import normalize_array,normalize_batch_tensor,convert_tensor_batch_to_store_nparray,safe_list_array,convert_tensor_to_nparray
 import numpy as np
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class UnNormalize(object):
     def __init__(self, mean, std):
         self.mean = mean
@@ -217,6 +219,8 @@ class modelHelper:
         image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
         image_grid = make_grid(image_unflat1[:batchSize * 3], nrow=batchSize)
         save_image(image_grid,str(path)+'.tiff')
+        plt.imshow(image_grid.permute(1, 2, 0))
+        plt.show()
 
     @staticmethod
     def save_tensor_single(image_tensorFake,

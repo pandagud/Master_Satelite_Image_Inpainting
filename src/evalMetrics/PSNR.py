@@ -14,7 +14,7 @@ class PSNR:
         self.name = "PSNR"
 
     @staticmethod
-    def __call__(img1, img2,max_value=1,tensor=True):
+    def __call__(img1, img2,max_value=None,tensor=True):
         ## If img is in tensor format ( from Dataloader) use this:
         #to_pil = torchvision.transforms.ToPILImage()
         #img1 = to_pil(img1)
