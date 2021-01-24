@@ -1,7 +1,7 @@
 import numpy as np
-
+import torch
 def convert_tensor_to_nparray(tensor):
-    tensor = tensor.detach().cpu().numpy()
+    tensor = tensor.detach().cpu().numpy()*255
     return np.transpose(tensor, (1, 2, 0)).astype(np.uint8)
 
 def remove_outliers(img_array):

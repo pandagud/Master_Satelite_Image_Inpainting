@@ -28,7 +28,7 @@ class PSNR:
             img2 = convert_tensor_to_nparray(img2)
         img1 = remove_outliers_eval(img1)
         img2 = remove_outliers_eval(img2)
-        return peak_signal_noise_ratio(img1,img2)
+        return peak_signal_noise_ratio(img1,img2,data_range=max_value)
 
 # from piq.utils import _validate_input, _adjust_dimensions
 #
