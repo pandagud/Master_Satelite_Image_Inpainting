@@ -4,6 +4,8 @@ import os
 os.environ["KMP_DUPLICATE_LIB_OK"] = "TRUE"
 import torch
 from torch.utils.data import Dataset
+import torchvision
+import torchvision.transforms as transforms
 import numpy as np
 import cv2
 import albumentations as A
@@ -38,43 +40,47 @@ class TCIDatasetLoader():
         else:
             self.localdir = pathlib.Path().absolute().parent
         self.processed_path = self.localdir / 'data' / 'processed'
-        self.tci_train_path=self.localdir /'data' /'TCI' / 'train'/'train'
-        self.tci_test_path = self.localdir / 'data' / 'TCI' / 'test' / 'test'
+        self.tci_train_path=self.localdir /'data' /'other_data'/ 'train_folder'
+        self.tci_test_path = self.localdir / 'data' / 'other_data' / 'test_folder'
         self.config = config
         self.images = []
         self.names = []
     def getTCIDataloder(self):
         path = "E:\Speciale\data6_other_paper_dataset\clear"
-        import glob
-        import cv2
-        path_images = Path(path)
-        str_path = str(path_images)
-        filelist = glob.glob(str_path + '/*.jpg')
-        data = []
-        for fname in filelist:
-            image = cv2.imread(fname, -1)
-            data.append(image)
-        random.shuffle(data)
-        train= data[:int((len(data) + 1) * .80)]  # Remaining 80% to training set
-        test = data[int((len(data) + 1) * .80):]  # Splits 20% data to test set
-        count = 0
-        path_train = r"E:\Speciale\data6_other_paper_dataset\train\train_"
-        for i in train:
-            cv2.imwrite(path_train+str(count)+".jpg",i)
-            count = count+1
-        count = 0
-        path_train = r"E:\Speciale\data6_other_paper_dataset\test\test_"
-        for i in test:
-            cv2.imwrite(path_train+str(count)+".jpg",i)
-            count = count+1
-        train_transform = A.Compose([
-            A.transforms.HorizontalFlip(p=0.5),
-            A.transforms.VerticalFlip(p=0.5),
+        train_transform = transforms.Compose([
+            transforms.RandomHorizontalFlip(p=0.5),
+            transforms.RandomVerticalFlip(p=0.5),
+            transforms.ToTensor()
         ])
-        test_trainsform = A.Compose([])
-        train_data = Dataset.ImageFolder(self.tci_train_path)
-        test_data = Dataset.ImageFolder(self.tci_test_path)
+        test_trainsform = transforms.Compose([transforms.ToTensor()])
+        train_data = torchvision.datasets.ImageFolder(self.tci_train_path,train_transform)
+        test_data = torchvision.datasets.ImageFolder(self.tci_test_path,test_trainsform)
+        train_data_loader = torch.utils.data.DataLoader(train_data,
+                                                        batch_size=self.config.batch_size,
+                                                        shuffle=True, num_workers=self.config.workers,
+                                                        drop_last=True)
+        test_data_loader = torch.utils.data.DataLoader(test_data,
+                                                       batch_size=self.config.batch_size,
+                                                       shuffle=False, num_workers=self.config.workers,
+                                                       drop_last=True)
+        print("total train datasize = " + str(len(train_data_loader.dataset)))
+        print("total test datasize = " + str(len(test_data_loader.dataset)))
 
+        return train_data_loader, test_data_loader
+
+    def getGeneratedImagesDataloader(self, pathToGeneratedImages):
+        generated_trainsform = transforms.Compose([transforms.ToTensor()])
+        gen_data = torchvision.datasets.ImageFolder(pathToGeneratedImages,
+                                                      generated_trainsform)
+        generated_data_loader = torch.utils.data.DataLoader(gen_data,
+                                                       batch_size=self.config.batch_size,
+                                                       shuffle=False, num_workers=self.config.workers,
+                                                       drop_last=True)
+        print("total generated datasize = " + str(len(generated_data_loader.dataset)))
+        # Create the dataloader
+        return generated_data_loader
+
+        return test_data_loader
 class NIRImageDataset(Dataset):
     def __init__(self, image_list, NIR_list, transform=None):
         self.image_list = image_list
@@ -332,7 +338,7 @@ class importData():
     def open_bandImage_as_array_and_names(self, path):
         path_images = Path.joinpath(self.processed_path, path)
         str_path = str(path_images)
-        filelist = glob.glob(str_path + '/*.png')
+        filelist = glob.glob(str_path + '/*.tiff')
         data = []
         names = []
         for fname in filelist:

@@ -61,7 +61,7 @@ if __name__ == '__main__':
 
 
     img = cv2.imread(
-        r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\data\processed\Remove_cloud\T35UNB_20200617T092029\bandTCIRGB\Test\normalizedRGBImages\original_0RGB\T35UNB_20200617T092029_train_1450.tiff")
+        r"E:\Speciale\raw_cloud\T35UNB_20200617T092029_train_1450.tiff")
     model_path = (
         r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_901.pt")
     local_test_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\images")
@@ -87,7 +87,7 @@ if __name__ == '__main__':
     mask2[mask2==255]=0
 
     img = cv2.imread(
-        r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\data\processed\Remove_cloud\T35UNB_20200617T092029\bandTCIRGB\Test\RGBImages\original_0RGB\T35UNB_20200617T092029_test_1450.tiff",-1)
+        r"E:\Speciale\raw_cloud\T35UNB_20200617T092029_test_1450.tiff",-1)
     config = TrainingConfig()
     image = convertToFloat32(img)
     image = remove_outliers(image)

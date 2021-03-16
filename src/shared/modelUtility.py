@@ -5,7 +5,7 @@ from pathlib import Path
 from os import remove
 from os import listdir
 from os.path import isfile, join
-import matplotlib.image as mpimg
+import matplotlib.pyplot as plt
 import glob
 import shutil
 from torchvision.utils import make_grid
@@ -13,6 +13,8 @@ from torchvision.utils import save_image
 from src.shared.convert import convertToUint16
 from src.shared.visualization import normalize_array,normalize_batch_tensor,convert_tensor_batch_to_store_nparray,safe_list_array,convert_tensor_to_nparray
 import numpy as np
+import os
+os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class UnNormalize(object):
     def __init__(self, mean, std):
         self.mean = mean
@@ -156,6 +158,36 @@ class modelHelper:
             save_image(image_grid, path)
 
     @staticmethod
+    def save_tensor_batch_TCI(image_tensorReal, image_tensorFake, image_tensorMasked,
+                          batchSize, path):
+        '''
+              Function for visualizing images: Given a tensor of images, number of images, and
+              size per image, plots and prints the images in an uniform grid.
+        '''
+        if not path.parent.exists():
+            path.parent.mkdir()
+
+        # fake_images = convert_tensor_batch_to_store_nparray(image_tensorFake,normalize=True)
+        # masked_images = convert_tensor_batch_to_store_nparray(image_tensorMasked, normalize=True)
+        # count = 0
+        # for i in range(len(real_images)):
+        #     group_images = []
+        #     group_images.append(real_images[i])
+        #     group_images.append(fake_images[i])
+        #     group_images.append(masked_images[i])
+        #     safe_list_array(group_images, str(path) + '_normalize_'+str(count)+'.tiff')
+        #     count = count+1
+        # image_tensor1 = (image_tensorReal + 1) / 2
+        image_unflat1 = image_tensorReal.detach().cpu()
+        # image_tensor2 = (image_tensorFake + 1) / 2
+        image_unflat2 = image_tensorFake.detach().cpu()
+        # image_tensor3 = (image_tensorMasked + 1) / 2
+        image_unflat3 = image_tensorMasked.detach().cpu()
+        image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
+        image_grid = make_grid(image_unflat1[:batchSize * 3], nrow=batchSize)
+        save_image(image_grid, str(path) + '.tiff')
+
+    @staticmethod
     def save_tensor_batch(image_tensorReal,image_tensorFake, image_tensorMasked,
                            batchSize,path):
         '''
@@ -187,6 +219,8 @@ class modelHelper:
         image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
         image_grid = make_grid(image_unflat1[:batchSize * 3], nrow=batchSize)
         save_image(image_grid,str(path)+'.tiff')
+        plt.imshow(image_grid.permute(1, 2, 0))
+        plt.show()
 
     @staticmethod
     def save_tensor_single(image_tensorFake,

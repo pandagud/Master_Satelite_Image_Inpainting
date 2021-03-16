@@ -15,7 +15,7 @@ from torch.distributions import MultivariateNormal
 # This whole implementation, is based on GAN course from coursera
 #https://github.com/mseitzer/pytorch-fid
 class FIDCalculator:
-    def __init__(self,realImages,fakeImages, numberOfSamples,batchsize,config):
+    def __init__(self,realImages,fakeImages, numberOfSamples,batchsize,config,TCI=None):
         self.reals = realImages
         self.fakes = fakeImages
         #self.gen = generator
@@ -27,6 +27,7 @@ class FIDCalculator:
         self.sigma_fake = 0
         self.sigma_real = 0
         self.config =config
+        self.TCI = TCI
     def matrix_sqrt(self,x):
         y = x.cpu().detach().numpy()
         y = scipy.linalg.sqrtm(y)
@@ -76,20 +77,40 @@ class FIDCalculator:
         Fake_dataloader_Iterations = iter(self.fakes)
         with torch.no_grad():  # You don't need to calculate gradients here, so you do this to save memory
             try:
-                for real_example in tqdm(self.reals, total=n_samples // batch_size,disable=self.config.run_polyaxon):  # Go by batch
-                    real_samples = real_example
-                    real_features = inception_model(real_samples.to(self.device)).detach().to('cpu')  # Move features to CPU
-                    real_features_list.append(real_features)
+                if self.TCI:
+                    for real_example,target in tqdm(self.reals, total=n_samples // batch_size,
+                                             disable=self.config.run_polyaxon):  # Go by batch
+                        real_samples = real_example
+                        real_features = inception_model(real_samples.to(self.device)).detach().to(
+                            'cpu')  # Move features to CPU
+                        real_features_list.append(real_features)
 
-                        #Usikker på om det her dur
-                        #https://stackoverflow.com/questions/53280967/pytorch-nextitertraining-loader-extremely-slow-simple-data-cant-num-worke
-                    fake_samples  = next(Fake_dataloader_Iterations)
-                    #fake_samples = self.preprocess(self.gen(fake_samples))
-                    fake_features = inception_model(fake_samples.to(self.device)).detach().to('cpu')
-                    fake_features_list.append(fake_features)
-                    cur_samples += len(real_samples)
-                    if cur_samples >= n_samples:
-                        break
+                        # Usikker på om det her dur
+                        # https://stackoverflow.com/questions/53280967/pytorch-nextitertraining-loader-extremely-slow-simple-data-cant-num-worke
+                        fake_samples = next(Fake_dataloader_Iterations)
+                        # fake_samples = self.preprocess(self.gen(fake_samples))
+                        fake_features = inception_model(fake_samples[0].to(self.device)).detach().to('cpu')
+                        fake_features_list.append(fake_features)
+                        cur_samples += len(real_samples)
+                        if cur_samples >= n_samples:
+                            break
+                else :
+                    for real_example in tqdm(self.reals, total=n_samples // batch_size,
+                                             disable=self.config.run_polyaxon):  # Go by batch
+                        real_samples = real_example
+                        real_features = inception_model(real_samples.to(self.device)).detach().to(
+                            'cpu')  # Move features to CPU
+                        real_features_list.append(real_features)
+
+                        # Usikker på om det her dur
+                        # https://stackoverflow.com/questions/53280967/pytorch-nextitertraining-loader-extremely-slow-simple-data-cant-num-worke
+                        fake_samples = next(Fake_dataloader_Iterations)
+                        # fake_samples = self.preprocess(self.gen(fake_samples))
+                        fake_features = inception_model(fake_samples.to(self.device)).detach().to('cpu')
+                        fake_features_list.append(fake_features)
+                        cur_samples += len(real_samples)
+                        if cur_samples >= n_samples:
+                            break
             except:
                 print("Error in FID loop")
 

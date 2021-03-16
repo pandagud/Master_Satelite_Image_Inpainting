@@ -14,7 +14,7 @@ class PSNR:
         self.name = "PSNR"
 
     @staticmethod
-    def __call__(img1, img2,max_value=1,tensor=True):
+    def __call__(img1, img2,max_value=None,tensor=True):
         ## If img is in tensor format ( from Dataloader) use this:
         #to_pil = torchvision.transforms.ToPILImage()
         #img1 = to_pil(img1)
@@ -28,7 +28,7 @@ class PSNR:
             img2 = convert_tensor_to_nparray(img2)
         img1 = remove_outliers_eval(img1)
         img2 = remove_outliers_eval(img2)
-        return peak_signal_noise_ratio(img1,img2)
+        return peak_signal_noise_ratio(img1,img2,data_range=max_value)
 
 # from piq.utils import _validate_input, _adjust_dimensions
 #

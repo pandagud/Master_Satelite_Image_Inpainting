@@ -7,7 +7,7 @@ import os
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from src.dataLayer.importRGB import importData,TCIDatasetLoader
 from src.models.train_model import trainInpainting
-from src.models.train_Wgan_model import trainInpaintingWgan
+from src.models.train_Wgan_model_TCI import trainInpaintingWgan
 from src.models.UnetPartialConvModel import generator,discriminator,criticWgan
 from src.config_default import TrainingConfig
 from src.config_utillity import update_config
@@ -42,13 +42,14 @@ def main(args):
     curdatLayer = TCIDatasetLoader(config)
     train, test = curdatLayer.getTCIDataloder()
     local_model_path= ""
-    if config.model_name == 'PartialConvolutions':
-        curtraingModel=trainInpainting(train,test,generator,discriminator,config)
-        local_model_path=curtraingModel.trainGAN()
-    elif config.model_name == 'PartialConvolutionsWgan':
-        curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)
-        local_model_path=curtraingModel.trainGAN()
-    #local_model_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_200.pt")
+    # if config.model_name == 'PartialConvolutions':
+    #     curtraingModel=trainInpainting(train,test,generator,discriminator,config)
+    #     local_model_path=curtraingModel.trainGAN()
+    # elif config.model_name == 'PartialConvolutionsWgan':
+    #     curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)
+    #     local_model_path=curtraingModel.trainGAN()
+    local_model_path = Path(r"/outputs/JacobPedersen/Satellite_Image_Inpainting_shared/experiments/5702/models/PartialConvolutionsWgan_301.pt")
+    #local_model_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_301.pt")
     if config.run_polyaxon:
         model_path =inpainting_data_path /'models'
         modelOutputPath = Path.joinpath(model_path, 'OutputModels')
@@ -58,7 +59,7 @@ def main(args):
         modelOutputPath = Path.joinpath(localdir, 'OutputModels')
         stores_output_path = localdir /'data'/'storedData'
     curevalModel = eval_model(config)
-    curevalModel.run_eval(modelOutputPath, stores_output_path,model_path=local_model_path,test_dataloader=test)
+    curevalModel.run_eval_TCI(modelOutputPath, stores_output_path,model_path=local_model_path,test_dataloader=test)
 
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'

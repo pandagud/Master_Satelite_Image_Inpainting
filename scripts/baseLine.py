@@ -21,8 +21,8 @@ def main(args):
     logger.info('making final dataLayer set from raw dataLayer')
 
     curdatLayer = importData(config)
-    train = curdatLayer.get_images_for_baseLine()
-    curBaseLineModel = baselineModel(train,config)
+    train, names = curdatLayer.get_images_for_baseLine()
+    curBaseLineModel = baselineModel(train,names,config)
     curBaseLineModel.baselineExperiment()
 
 

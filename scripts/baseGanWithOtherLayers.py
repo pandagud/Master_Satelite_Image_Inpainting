@@ -15,7 +15,7 @@ from src.config_utillity import update_config
 from pathlib import Path
 from polyaxon_client.tracking import get_data_paths, get_outputs_path,Experiment
 from src.evalMetrics.eval_GAN_model import eval_model
-
+CUDA_LAUNCH_BLOCKING=1
 
 
 @click.command()

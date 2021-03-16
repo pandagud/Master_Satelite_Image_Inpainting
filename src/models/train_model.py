@@ -12,7 +12,6 @@ from src.models.UnetPartialConvModel import PartialConv2d
 from src.models.loss import CalculateLoss
 import os
 
-
 class trainInpainting():
     def __init__(self, dataloader, testImageDataloader, generator, discriminator, config):
         self.dataloader = dataloader

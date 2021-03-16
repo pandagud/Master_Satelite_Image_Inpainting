@@ -68,8 +68,8 @@ class trainInpaintingWgan():
                                   grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
                                   create_graph=True, retain_graph=True, only_inputs=True)[0]
         gradients = gradients.view(gradients.size(0), -1)
-        #new_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * self.lambda_gp
-        new_gradient_penalty = torch.mean((1. - torch.sqrt(1e-8+torch.sum(gradients.view(gradients.size(0), -1)**2, dim=1)))**2)* self.lambda_gp
+        new_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * self.lambda_gp
+        #new_gradient_penalty = torch.mean((1. - torch.sqrt(1e-8+torch.sum(gradients.view(gradients.size(0), -1)**2, dim=1)))**2)
         return new_gradient_penalty
 
 
@@ -105,7 +105,7 @@ class trainInpaintingWgan():
 
 
         for epoch in range(self.epochs):
-            for real in tqdm(self.dataloader,position=0,leave=True,disable=self.config.run_polyaxon):
+            for real,target in tqdm(self.dataloader,position=0,leave=True,disable=self.config.run_polyaxon):
 
                 masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
                 masks = torch.from_numpy(masks)
@@ -191,7 +191,7 @@ class trainInpaintingWgan():
                     modelHelper.save_tensor_batch_NIR(real, Masked_fake_img, fake_imgs, self.batchSize,
                                               Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
                 else:
-                    modelHelper.save_tensor_batch(real, Masked_fake_img, fake_imgs, self.batchSize,
+                    modelHelper.save_tensor_batch_TCI(real, Masked_fake_img, fake_imgs, self.batchSize,
                                               Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
                 # Save loss from generator and critic to a file
 
@@ -209,7 +209,7 @@ class trainInpaintingWgan():
                     module.eval()
 
             for epoch in range(self.epochsFrozen):
-                for real in tqdm(self.dataloader, position=0, leave=True, disable=self.config.run_polyaxon):
+                for real,target in tqdm(self.dataloader, position=0, leave=True, disable=self.config.run_polyaxon):
 
                     masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
                     masks = torch.from_numpy(masks)
@@ -294,7 +294,7 @@ class trainInpaintingWgan():
                         modelHelper.save_tensor_batch_NIR(real, Masked_fake_img, fake_imgs, self.batchSize,
                                                           Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
                     else:
-                        modelHelper.save_tensor_batch(real, Masked_fake_img, fake_imgs, self.batchSize,
+                        modelHelper.save_tensor_batch_TCI(real, Masked_fake_img, fake_imgs, self.batchSize,
                                                   Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch+self.epochs)))
                     # Save loss from generator and critic to a file
 
