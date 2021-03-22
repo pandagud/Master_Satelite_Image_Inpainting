@@ -1,0 +1,47 @@
+---
+version: 1
+
+kind: experiment
+
+tags: [deeplabv3, geodenmark]
+
+environment:
+  resources:
+    gpu:
+      requests: 1
+      limits: 1
+    memory:
+      requests: 256
+      limits: 30000
+
+build:
+  image: pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime
+  build_steps:
+    # Install dependencies
+    - apt-get update
+    - apt-get install -y libglib2.0-0
+    # Install project specific packages
+    - pip install --no-cache-dir -r requirements.txt
+    # Install mkl
+    - conda install -yf mkl && conda install -y numpy scipy scikit-learn numexpr "blas=*=*mkl"
+    # Install cv2
+    - pip install opencv-python-headless
+    # Install Pillow-simd
+    - conda uninstall -y --force pillow pil jpeg libtiff libjpeg-turbo
+    - conda install -y -c conda-forge libjpeg-turbo
+    - conda install -y -c zegami libtiff-libjpeg-turbo
+    - pip uninstall -y pillow
+    - apt-get update
+    - apt-get -y install build-essential
+    - CC="cc -mavx2" pip install -U --force-reinstall pillow-simd
+    # Clean up
+    - apt-get purge -y --auto-remove build-essential
+    - rm -rf /var/lib/apt/lists/*
+    - conda clean -afy
+params:
+  batch_size_input: 9
+  lr: 0.0002
+  b1: 0.9
+
+run:
+  cmd: python -u scripts/TestOfRasterioWindowsRun.py batch_size:{{ batch_size_input }} trainMode:True run_polyaxon:True epochs:100 frozenEpochs:10 save_model_step:50 model_name:PartialConvolutionsWgan lambda_gp:10 lr:{{lr}} beta1:{{b1}} trainFrozen:True lambdaStyle:240.0 lambdaValid:1.0 lambdaHole:6.0 lambdaTv:2.0 lambdaPerceptual:0.05

@@ -6,8 +6,7 @@ import os
 # (https://stackoverflow.com/questions/714063/importing-modules-from-parent-folder)
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
 from src.dataLayer.importRGB import importData
-from src.models.train_model import trainInpainting
-from src.models.train_Wgan_model import trainInpaintingWgan
+from src.models.train_Wgan_model_SAR import trainInpaintingWgan
 from src.models.UnetPartialConvModel import generator,discriminator,criticWgan
 from src.config_default import TrainingConfig
 from src.config_utillity import update_config
@@ -30,7 +29,7 @@ def main(args):
     config = update_config(args,config)
     ## For polyaxon
     if config.run_polyaxon:
-        input_root_path = Path(get_data_paths()['data'])
+        input_root_path = Path(get_data_paths()['data']) #'data'
         output_root_path = Path(get_outputs_path())
         inpainting_data_path = input_root_path / 'inpainting'
         os.environ['TORCH_HOME'] = str(input_root_path / 'pytorch_cache')
@@ -38,29 +37,35 @@ def main(args):
         config.output_path=output_root_path
         config.polyaxon_experiment=Experiment()
 
+        pathToData = str(input_root_path / 'Aarhus_test')
+    else:
+        pathToData = Path(r"C:\Users\Morten From\PycharmProjects\Master_Satelite_Image_Inpainting\data\data\Barren")
+
     logger = logging.getLogger(__name__)
     logger.info('making final dataLayer set from raw dataLayer')
 
     #curdatLayer = importData(config)
     #train, test = curdatLayer.getRGBDataLoader()
     #local_model_path= ""
-    pathToData = Path(r"C:\Users\Morten From\PycharmProjects\Master_Satelite_Image_Inpainting\data\data\Barren")
+    #Test path to data config
+    logger.info(pathToData)
+
     ImageDict = get_dataset(pathToData, batch_size=config.batch_size)
     train = ImageDict['train_dataloader']
     test = ImageDict['test_dataloader']
 
 
 
-
+        #Kører begge på Wgan loop lige nu
     if config.model_name == 'PartialConvolutions':
-        curtraingModel=trainInpainting(train,test,generator,discriminator,config)
+        curtraingModel=trainInpaintingWgan(train,test,generator,discriminator,config)
         local_model_path=curtraingModel.trainGAN()
     elif config.model_name == 'PartialConvolutionsWgan':
         curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)
         local_model_path=curtraingModel.trainGAN()
     #local_model_path = Path(r"C:\Users\panda\PycharmProjects\Image_Inpainting_Sat\Master_Satelite_Image_Inpainting\OutputModels\PartialConvolutionsWgan_200.pt")
     if config.run_polyaxon:
-        model_path =inpainting_data_path /'models'
+        model_path = inpainting_data_path /'models'
         modelOutputPath = Path.joinpath(model_path, 'OutputModels')
         stores_output_path = config.output_path /'data'/'storedData'
     else:

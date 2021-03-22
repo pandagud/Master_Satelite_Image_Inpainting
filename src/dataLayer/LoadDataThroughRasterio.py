@@ -19,11 +19,13 @@ class LoadRasterioWindows(Dataset):
 
         # Define paths, maybe here make the path to the root only, and define a loop with loading the tiles
         # That go through all folders in each BIOME for to create the dataset
-        OpticImage = Path(data_root_path) / 'Optic' / 'S1B_20200404_020990_DSC_139_RGB.tif'
-        SarImage = Path(data_root_path) / 'Sar' / 'S1B_20200404_020990_DSC_139_RGB.tif'
+        OpticImageB02 = Path(data_root_path) / 'Optic' / 'Band2.tif'
+        OpticImageB03 = Path(data_root_path) / 'Optic' / 'Band3.tif'
+        OpticImageB04 = Path(data_root_path) / 'Optic' / 'Band4.tif'
+        SarImage = Path(data_root_path) / 'Sar' / 'SAR_clipped.tif'
 
         # Get the height and width of the Optic image
-        with rasterio.open(OpticImage) as src:
+        with rasterio.open(OpticImageB02) as src:
             image_height = src.height
             image_width = src.width
 
@@ -43,7 +45,9 @@ class LoadRasterioWindows(Dataset):
                 # the tiles to be of different sizes, such that the resolutions match (however, in this case the tiles
                 # needs to be resized in the applied transformations).
                 image_tile = {
-                    'OpticImage_path': OpticImage,
+                    'OpticImage_path2': OpticImageB02,
+                    'OpticImage_path3': OpticImageB03,
+                    'OpticImage_path4': OpticImageB04,
                     'SARImage_path': SarImage,
                     'tile_y_coordinate': row_num * tile_height,
                     'tile_x_coordinate': col_num * tile_width,
@@ -72,8 +76,12 @@ class LoadRasterioWindows(Dataset):
                        image_tile['tile_width'],
                        image_tile['tile_height']]
 
-        with rasterio.open(image_tile['OpticImage_path']) as src:
-            r, g, b = (src.read(k, window=Window(*window_argv)) for k in (1, 2, 3))
+        with rasterio.open(image_tile['OpticImage_path2']) as src:
+            r = (src.read(window=Window(*window_argv)))
+        with rasterio.open(image_tile['OpticImage_path2']) as src:
+            g = (src.read(window=Window(*window_argv)))
+        with rasterio.open(image_tile['OpticImage_path2']) as src:
+            b = (src.read(window=Window(*window_argv)))
         image = np.array([r, g, b])
         #image = np.rollaxis(image, 0, 3)  # Change format from CHW to HWC
 
