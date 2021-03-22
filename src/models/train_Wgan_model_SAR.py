@@ -218,9 +218,10 @@ class trainInpaintingWgan():
                     masks.to(self.device)
 
                     SAR = real[1].to(self.device)
+                    SAR = SAR.type(torch.FloatTensor)
                     real = real[0].to(self.device)
                     real = real.type(torch.FloatTensor)
-
+                    real = torch.stack([real, SAR], dim=0) #måske torch.cat?
 
                     # ---------------------
                     #  Train critic
