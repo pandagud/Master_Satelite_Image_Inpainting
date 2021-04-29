@@ -136,7 +136,7 @@ class generator(nn.Module):
     def __init__(self):
         super(generator, self).__init__()
 
-        self.down1 = UNetDown(3, 64, 3, normalize=False)  # self.down(input)??
+        self.down1 = UNetDown(4, 64, 3, normalize=False)  # self.down(input)?? #RET HER
         self.down2 = UNetDown(64, 128, 3)
         self.down3 = UNetDown(128, 256, 3)
         self.down4 = UNetDown(256, 512, 3)
@@ -151,7 +151,7 @@ class generator(nn.Module):
         self.up5 = UNetUp(512+256, 256, 3)
         self.up6 = UNetUp(256+128, 128, 3)
         self.up7 = UNetUp(128+64, 64, 3)
-        self.up8 = UNetUp(64+3, 3, 3, lastLayer=True) #check opløsning der kommer ud?
+        self.up8 = UNetUp(64+4, 3, 3, lastLayer=True) #check opløsning der kommer ud? #RET HER
 
     def forward(self, input, mask):
         x1, mask1 = self.down1(input, mask_in=mask)

@@ -7,6 +7,8 @@ import rasterio
 import torch
 from rasterio.windows import Window
 from torch.utils.data import Dataset
+import albumentations as A
+
 
 
 class LoadRasterioWindows(Dataset):
@@ -19,10 +21,10 @@ class LoadRasterioWindows(Dataset):
 
         # Define paths, maybe here make the path to the root only, and define a loop with loading the tiles
         # That go through all folders in each BIOME for to create the dataset
-        OpticImageB02 = Path(data_root_path) / 'Optic' / 'Band2.tif'
-        OpticImageB03 = Path(data_root_path) / 'Optic' / 'Band3.tif'
-        OpticImageB04 = Path(data_root_path) / 'Optic' / 'Band4.tif'
-        SarImage = Path(data_root_path) / 'Sar' / 'SAR_clipped.tif'
+        OpticImageB02 = Path(data_root_path) / 'Sentinel2' / 'Band2.tif'
+        OpticImageB03 = Path(data_root_path) / 'Sentinel2' / 'Band3.tif'
+        OpticImageB04 = Path(data_root_path) / 'Sentinel2' / 'Band4.tif'
+        SarImage = Path(data_root_path) / 'Sentinel1' / 'Sar.tif'
 
         # Get the height and width of the Optic image
         with rasterio.open(OpticImageB02) as src:
@@ -76,22 +78,47 @@ class LoadRasterioWindows(Dataset):
                        image_tile['tile_width'],
                        image_tile['tile_height']]
 
-        with rasterio.open(image_tile['OpticImage_path2']) as src:
+        with rasterio.open(image_tile['OpticImage_path4'], driver="GTiff", dtype=rasterio.uint16) as src:
             r = (src.read(window=Window(*window_argv)))
-        with rasterio.open(image_tile['OpticImage_path2']) as src:
+        with rasterio.open(image_tile['OpticImage_path3'], driver="GTiff", dtype=rasterio.uint16) as src:
             g = (src.read(window=Window(*window_argv)))
-        with rasterio.open(image_tile['OpticImage_path2']) as src:
+        with rasterio.open(image_tile['OpticImage_path2'], driver="GTiff", dtype=rasterio.uint16) as src:
             b = (src.read(window=Window(*window_argv)))
-        image = np.array([r, g, b])
-        #image = np.rollaxis(image, 0, 3)  # Change format from CHW to HWC
+        image = np.vstack((r, g, b))
+        #image = np.rollaxis(image, 0, 3)
 
         with rasterio.open(
                 image_tile['SARImage_path']) as src:  # Changed, to contain the channels of the pre processed SAR
             VV, VH, VVVH = (src.read(k, window=Window(*window_argv)) for k in (1, 2, 3))
-            SARImage = np.array([VV, VH, VVVH])
-
+        SARImage = np.array([VV, VH, VVVH])
+        #SARImage = np.rollaxis(SARImage,0,3)
         # Create a dict with the inputs to the transforms (in this case it is only the image)
-        input_dict = {'image': image, 'SAR': SARImage}
+        #input_dict = {'image': image, 'SAR': SARImage}
+        #To apply the same transformation on both image and SARimage
+
+        if self.transforms_dict is not None:
+            transformed = self.transforms_dict(image=image, image0=SARImage)
+        image = transformed['image']
+        image = torch.from_numpy(np.array((image).astype(np.float32)))
+        image = image/10000
+        SARImage = transformed['image0']
+        SARImage = torch.from_numpy(np.array((SARImage).astype(np.float32)))
+        SARImage = SARImage/45
+
+
+
+        #https://github.com/pytorch/vision/issues/9
+        #seed = np.random.randint(2147483647)  # make a seed with numpy generator
+        #random.seed(seed)  # apply this seed to img transforms
+        #torch.manual_seed(seed)  # needed for torchvision 0.7
+        #if self.transforms_dict is not None:
+        #    image = self.transforms_dict(Image=image)
+
+        #random.seed(seed)  # apply this seed to target transforms
+        #torch.manual_seed(seed)  # needed for torchvision 0.7
+        #if self.transforms_dict is not None:
+        #    SARImage = self.transforms_dict(Image=SARImage)
+
         # transformed_input_dict = perform_transforms(input_dict, transforms_dict=self.transforms_dict, split=self.split)
         # image = transformed_input_dict['image']
         # label = transformed_input_dict['mask']
@@ -102,6 +129,15 @@ class LoadRasterioWindows(Dataset):
 def get_dataset(data_root_path, patch_size=256, batch_size=16, transforms_dict=None, use_cuda=False, random_seed=42):
     # Put together the dataset dict
     kwargs = {'pin_memory': False} if use_cuda else {}
+    ##Test transforms
+    test_transform = A.Compose(
+        [
+            A.HorizontalFlip(p=0.5),
+            A.VerticalFlip(p=0.5),
+        ],
+        additional_targets={'image0': 'image', 'image1': 'image'}
+    )
+    transforms_dict = test_transform
     train_loader = torch.utils.data.DataLoader(
         LoadRasterioWindows(data_root_path,
                             patch_size=patch_size,

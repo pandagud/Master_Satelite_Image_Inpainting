@@ -28,7 +28,7 @@ class TrainingConfig:
     trainMode:bool = True
     test_mode:bool=False
     pathToModel:str = 'm'
-    n_critic = 2
+    n_critic = 5
     lambda_gp = 10
     save_model_step:int = 500
     save_error_step:int = 20

@@ -16,8 +16,6 @@ from src.evalMetrics.eval_GAN_model import eval_model
 
 from src.dataLayer.LoadDataThroughRasterio import get_dataset
 
-
-
 @click.command()
 @click.argument('args', nargs=-1)
 def main(args):
@@ -28,6 +26,8 @@ def main(args):
     config = TrainingConfig()
     config = update_config(args,config)
     ## For polyaxon
+
+
     if config.run_polyaxon:
         input_root_path = Path(get_data_paths()['data']) #'data'
         output_root_path = Path(get_outputs_path())
@@ -37,17 +37,20 @@ def main(args):
         config.output_path=output_root_path
         config.polyaxon_experiment=Experiment()
 
-        pathToData = str(input_root_path / 'Aarhus_test')
+        pathToData = str(input_root_path / '/workspace/data_landset8/testImages')
     else:
-        pathToData = Path(r"C:\Users\Morten From\PycharmProjects\Master_Satelite_Image_Inpainting\data\data\Barren")
+        pathToData = Path(r"C:\Users\Morten From\PycharmProjects\testDAta")
+
+    testPathData = Path(r'/workspace/data_landset8/unzipped/GrassCrops/BC/LC81820302014180LGN00')
+
+    #S1A_20201005_034656_DSC_109_RGBsar_cog.tif
+    #S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B02_cog
+    #S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B03_cog.tif
+    #S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B04_cog.tif
 
     logger = logging.getLogger(__name__)
     logger.info('making final dataLayer set from raw dataLayer')
 
-    #curdatLayer = importData(config)
-    #train, test = curdatLayer.getRGBDataLoader()
-    #local_model_path= ""
-    #Test path to data config
     logger.info(pathToData)
 
     ImageDict = get_dataset(pathToData, batch_size=config.batch_size)
@@ -58,7 +61,7 @@ def main(args):
 
         #Kører begge på Wgan loop lige nu
     if config.model_name == 'PartialConvolutions':
-        curtraingModel=trainInpaintingWgan(train,test,generator,discriminator,config)
+        curtraingModel=trainInpaintingWgan(train,test, generator,discriminator,config)
         local_model_path=curtraingModel.trainGAN()
     elif config.model_name == 'PartialConvolutionsWgan':
         curtraingModel = trainInpaintingWgan(train, test, generator, criticWgan, config)

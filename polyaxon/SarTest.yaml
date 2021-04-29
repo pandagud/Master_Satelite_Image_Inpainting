@@ -44,4 +44,4 @@ params:
   b1: 0.9
 
 run:
-  cmd: python -u scripts/TestOfRasterioWindowsRun.py batch_size:{{ batch_size_input }} trainMode:True run_polyaxon:True epochs:100 frozenEpochs:10 save_model_step:50 model_name:PartialConvolutionsWgan lambda_gp:10 lr:{{lr}} beta1:{{b1}} trainFrozen:True lambdaStyle:240.0 lambdaValid:1.0 lambdaHole:6.0 lambdaTv:2.0 lambdaPerceptual:0.05
+  cmd: python -u scripts/TestOfRasterioWindowsRun.py batch_size:{{ batch_size_input }} trainMode:True run_polyaxon:True epochs:201 frozenEpochs:10 save_model_step:50 model_name:PartialConvolutionsWgan lambda_gp:10 lr:{{lr}} beta1:{{b1}} trainFrozen:False lambdaStyle:240.0 lambdaValid:1.0 lambdaHole:6.0 lambdaTv:2.0 lambdaPerceptual:0.05
