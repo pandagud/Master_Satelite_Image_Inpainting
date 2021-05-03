@@ -149,7 +149,9 @@ class trainInpainting():
                 masks = 1 - masks
                 masks.to(self.device)
 
-                real = real.to(self.device)
+                Sar = real[1].to(self.device)
+                real = real[0].to(self.device)
+                real = real.type(torch.FloatTensor).to(self.device)
 
                 ## Update discriminator ##
                 disc.zero_grad()
