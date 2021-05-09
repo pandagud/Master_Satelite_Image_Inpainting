@@ -17,6 +17,7 @@ environment:
 build:
   image: pytorch/pytorch:1.6.0-cuda10.1-cudnn7-runtime
   build_steps:
+    - BLABLA MAKE ERROR
     # Install dependencies
     - apt-get update
     - apt-get install -y libglib2.0-0
