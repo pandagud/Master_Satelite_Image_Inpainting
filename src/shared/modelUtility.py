@@ -11,7 +11,7 @@ import shutil
 from torchvision.utils import make_grid
 from torchvision.utils import save_image
 from src.shared.convert import convertToUint16
-from src.shared.visualization import normalize_array,normalize_batch_tensor,convert_tensor_batch_to_store_nparray,safe_list_array,convert_tensor_to_nparray
+from src.shared.visualization import normalize_array,normalize_batch_tensor,convert_tensor_batch_to_store_nparray,safe_list_array,convert_tensor_to_nparray, normalize_batch_SAR
 import numpy as np
 import os
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
@@ -219,6 +219,42 @@ class modelHelper:
         image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
         image_grid = make_grid(image_unflat1[:batchSize * 3], nrow=batchSize)
         save_image(image_grid,str(path)+'.tiff')
+        plt.imshow(image_grid.permute(1, 2, 0))
+        plt.show()
+
+    @staticmethod
+    def save_tensor_batchSAR(image_tensorReal, image_tensorSAR, image_tensorOpticFake,
+                          batchSize, path):
+        '''
+              Function for visualizing images: Given a tensor of images, number of images, and
+              size per image, plots and prints the images in an uniform grid.
+        '''
+        if not path.parent.exists():
+            path.parent.mkdir()
+
+        # fake_images = convert_tensor_batch_to_store_nparray(image_tensorFake,normalize=True)
+        # masked_images = convert_tensor_batch_to_store_nparray(image_tensorMasked, normalize=True)
+        # count = 0
+        # for i in range(len(real_images)):
+        #     group_images = []
+        #     group_images.append(real_images[i])
+        #     group_images.append(fake_images[i])
+        #     group_images.append(masked_images[i])
+        #     safe_list_array(group_images, str(path) + '_normalize_'+str(count)+'.tiff')
+        #     count = count+1
+        # image_tensor1 = (image_tensorReal + 1) / 2
+        image_unflat1 = image_tensorReal.detach().cpu()
+        image_unflat1 = normalize_batch_tensor(image_unflat1)
+        # image_tensor2 = (image_tensorFake + 1) / 2
+        image_unflat2 = image_tensorSAR.detach().cpu()
+        #image_unflat2 = normalize_batch_SAR(image_unflat2)
+        # image_tensor3 = (image_tensorMasked + 1) / 2
+        image_unflat3 = image_tensorOpticFake.detach().cpu()
+        image_unflat3 = normalize_batch_tensor(image_unflat3)
+
+        image_unflat1 = torch.cat((image_unflat1, image_unflat2, image_unflat3), dim=0)
+        image_grid = make_grid(image_unflat1[:batchSize * 3], nrow=batchSize)
+        save_image(image_grid, str(path) + '.tiff')
         plt.imshow(image_grid.permute(1, 2, 0))
         plt.show()
 

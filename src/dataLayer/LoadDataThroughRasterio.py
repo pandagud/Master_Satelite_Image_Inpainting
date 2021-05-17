@@ -103,8 +103,8 @@ class LoadRasterioWindows(Dataset):
         image = image/10000
         SARImage = transformed['image0']
         SARImage = torch.from_numpy(np.array((SARImage).astype(np.float32)))
-        SARImage = SARImage/45
-
+        SARImage = (SARImage+45)/90
+        #SARImage = SARImage/45
 
 
         #https://github.com/pytorch/vision/issues/9
@@ -146,7 +146,7 @@ def get_dataset(data_root_path, patch_size=256, batch_size=16, transforms_dict=N
                             random_seed=random_seed),
         batch_size=batch_size,
         shuffle=True,
-        num_workers=6,
+        num_workers=0,
         drop_last=True,  # Necessary sometimes (e.g., when batchnorm layer requires more than a single sample)
         **kwargs
     )

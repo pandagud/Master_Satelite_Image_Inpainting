@@ -111,24 +111,24 @@ class trainInpaintingWgan():
                 masks = loadAndAgumentMasks.returnTensorMasks(self.batchSize)
                 masks = torch.from_numpy(masks)
                 masks = masks.type(torch.cuda.FloatTensor)
-                masksSAR, *_ = torch.chunk(masks, chunks=3, dim=1)
-                masksSAR = masksSAR.type(torch.cuda.FloatTensor)
+                #masksSAR, *_ = torch.chunk(masks, chunks=3, dim=1)
+                #masksSAR = masksSAR.type(torch.cuda.FloatTensor)
                 masks = 1 - masks
-                masks4 = torch.cat((masks, masksSAR), 1)
-                masks4.to(self.device)
+                #masks4 = torch.cat((masks, masksSAR), 1)
+                #masks4.to(self.device)
                 masks.to(self.device)
 
 
                 real = real.to(self.device)
-                SAR = SAR.to(self.device)
+                #SAR = SAR.to(self.device)
                 #Real = optic RGB og SAR = VV,VH,VV/VH
                 #For the first experiments, only the VV/VH band is included in the model
                 #This is therefore extracted and added to the RGB bands and then a similar mask array with 4 dimensions
                 #is created to train the model on both RGB VV/VH
 
                 #dimVV,dimVH,dimVVVH = torch.chunk(SAR,split_size_or_sections=3,dim=1)
-                dimVV, dimVH, dimVVVH = torch.chunk(SAR, chunks=3, dim=1)
-                real_vv_vh = torch.cat((real, dimVVVH),dim=1)
+                #dimVV, dimVH, dimVVVH = torch.chunk(SAR, chunks=3, dim=1)
+                #real_vv_vh = torch.cat((real, dimVVVH),dim=1)
 
                 # ---------------------
                 #  Train critic
@@ -138,8 +138,9 @@ class trainInpaintingWgan():
                 real_validity = critic(real)
                 d_real = real_validity.mean()
                 # Generate a batch of images with mask
-                Masked_fake_img = torch.mul(real_vv_vh, masks4)
-                fake_imgs = gen(Masked_fake_img, masks4)
+                #Masked_fake_img = torch.mul(real_vv_vh, masks4)
+                Masked_fake_img = torch.mul(real, masks)
+                fake_imgs = gen(Masked_fake_img, masks)
 
                 # Fake images
                 fake_validity = critic(fake_imgs)  # Detach or not?
@@ -166,8 +167,8 @@ class trainInpaintingWgan():
                     # -----------------
                     gen.zero_grad()
                     # Generate a batch of images
-                    fake_noise = torch.mul(real_vv_vh, masks4)
-                    fake_imgs = gen(fake_noise, masks4)
+                    fake_noise = torch.mul(real, masks)
+                    fake_imgs = gen(fake_noise, masks)
                     # Loss measures generator's ability to fool the critic
                     # Train on fake images
                     fake_validity1 = critic(fake_imgs)
