@@ -202,9 +202,14 @@ class trainInpaintingWgan():
                 if self.config.nir_data:
                     modelHelper.save_tensor_batch_NIR(real, Masked_fake_img, fake_imgs, self.batchSize,
                                               Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
+
                 else:
-                    modelHelper.save_tensor_batch(real, Masked_fake_img, fake_imgs, self.batchSize,
-                                              Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
+                    modelHelper.save_tensor_batch_NIR(real, Masked_fake_img, fake_imgs, self.batchSize,
+                                                      Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
+                    #Changed the else loop to handle the new generator taking SAR
+                #else:
+                #    modelHelper.save_tensor_batch(real, Masked_fake_img, fake_imgs, self.batchSize,
+                #                              Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
                 # Save loss from generator and critic to a file
 
                 filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + 'Errors.txt')
