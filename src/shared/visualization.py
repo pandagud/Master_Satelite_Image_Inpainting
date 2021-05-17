@@ -13,6 +13,8 @@ def normalize_array(array_image):
     return array_image
 def normalize_batch_tensor(batch):
     return torch.div(batch,(4000/10000))
+def normalize_batch_SAR(batch):
+    return batch*90-45
 
 def convert_tensor_to_nparray(tensor):
     tensor = tensor.detach().cpu().numpy()
