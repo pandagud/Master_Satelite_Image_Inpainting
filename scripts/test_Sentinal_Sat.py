@@ -1,5 +1,8 @@
 import logging
 import click
+import random
+
+
 from src.config_default import TrainingConfig
 from src.config_utillity import update_config
 import os
@@ -14,7 +17,7 @@ from shapely.ops import unary_union
 ## TESSTING
 
 from sentinelsat import SentinelAPI, read_geojson, geojson_to_wkt
-from datetime import date
+from sentinelsat import InvalidChecksumError
 @click.command()
 @click.argument('args', nargs=-1)
 def main(args):
@@ -27,13 +30,36 @@ def main(args):
     config = update_config(args,config)
     logger = logging.getLogger(__name__)
     logger.info('making final dataLayer set from raw dataLayer')
-    api = SentinelAPI('pandagud', 'damp4ever', 'https://scihub.copernicus.eu/dhus')
+    userTuple = [['pandagud','damp4ever'],['pandagud2','damp4ever'],['pandagud3','damp4ever'],['au524478','Palantir1234']]
+    current_user = random.choice(userTuple)
+
+    api = SentinelAPI(current_user[0], current_user[1], 'https://scihub.copernicus.eu/dhus')
 
     # search by polygon, time, and SciHub query keywords
-    path  = r"C:\Users\panda\Downloads\LC81820302014180LGN00.geojson"
+    path  = r"C:\Users\panda\Downloads\LC80290292014132LGN00.geojson"
     footprint = geojson_to_wkt(read_geojson(path))
-    products = api.query(area=footprint, date=('20210401', '20210601'), producttype='GRD',
-                         platformname='Sentinel-1',sensoroperationalmode='IW',polarisationmode='VV VH')
+    products = api.query(area=footprint, date=('20210101', '20210105'),
+                         platformname='Sentinel-2',order_by='+ingestiondate',limit=1)
+    areas = api.to_geodataframe(products)
+    geojson = api.to_geojson(products)
+    api.download_all(products,into=r'C:\Users\panda\Sat_paper\Alfa')
+
+    products = api.query(area=footprint, date=('20210401', '20210430'), producttype='GRD',
+                         platformname='Sentinel-1',sensoroperationalmode='IW',polarisationmode='VV VH',order_by='ingestiondate')
+    firstproduct = next(iter(products))
+    online_product = ''
+    for i in products:
+        is_online = api.is_online( products.get(i).get('uuid'))
+        if is_online:
+            online_product=i
+            break
+    delete_list = []
+    for i in products:
+        if i !=online_product:
+            delete_list.append(i)
+    for i in delete_list:
+        del products[i]
+
     ground_geojsons = read_geojson(path)
     products_geojsons = api.to_geojson(products)
 
