@@ -12,11 +12,11 @@ numpy~=1.19.2
 matplotlib~=3.2.0
 Pillow~=7.2.0
 setuptools~=47.1.0
-##GDAL Req rasterio>=1.1.7
 click~=7.1.2
 seaborn>=0.10.1
 pathlib>=1.0.1
 scikit-image>=0.16.1
 polyaxon_client==0.6.1
+gdal==3.0.2
 albumentations==0.5.1
 rasterio==1.1.0
