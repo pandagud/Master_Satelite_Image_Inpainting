@@ -14,6 +14,7 @@ from src.shared.convert import convertToUint16
 from src.shared.visualization import normalize_array,normalize_batch_tensor,convert_tensor_batch_to_store_nparray,safe_list_array,convert_tensor_to_nparray, normalize_batch_SAR
 import numpy as np
 import os
+from polyaxon import tracking
 os.environ['KMP_DUPLICATE_LIB_OK']='True'
 class UnNormalize(object):
     def __init__(self, mean, std):
@@ -284,3 +285,12 @@ class modelHelper:
     def saveMetrics(metrics,name,value,polyaxon_experiment,epoch_step):
         metrics[name] = value
         polyaxon_experiment.log_metrics(step=epoch_step, **metrics)
+
+    @staticmethod
+    def saveMetricsNewPolyaxon(metrics,name,value,epoch_step):
+        os.environ['POLYAXON_NO_OP'] = 'true'
+        from polyaxon import tracking
+        tracking.init()
+        polyaxon_experiment = tracking
+        metrics[name] = value
+        polyaxon_experiment.log_metrics(step=epoch_step,**metrics)
