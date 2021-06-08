@@ -36,11 +36,14 @@ def main(args):
     api = SentinelAPI(current_user[0], current_user[1], 'https://scihub.copernicus.eu/dhus')
 
     # search by polygon, time, and SciHub query keywords
-    path  = r"C:\Users\panda\Downloads\test_order_20210506-114908.geojson"
+    path  = r"C:\Users\panda\Downloads\LC80290292014132LGN00.geojson"
     footprint = geojson_to_wkt(read_geojson(path))
-    products = api.query(area=footprint, date=('20210401', '20210430'),
+    products = api.query(area=footprint, date=('20210101', '20210105'),
                          platformname='Sentinel-2',order_by='+ingestiondate',limit=1)
-    api.download_all(products)
+    areas = api.to_geodataframe(products)
+    geojson = api.to_geojson(products)
+    api.download_all(products,into=r'C:\Users\panda\Sat_paper\Alfa')
+
     products = api.query(area=footprint, date=('20210401', '20210430'), producttype='GRD',
                          platformname='Sentinel-1',sensoroperationalmode='IW',polarisationmode='VV VH',order_by='ingestiondate')
     firstproduct = next(iter(products))
