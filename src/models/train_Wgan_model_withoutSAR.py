@@ -104,7 +104,6 @@ class trainInpaintingWgan():
         loss_func = CalculateLoss(config=self.config).to(self.device)
         full_ones = torch.from_numpy(np.ones((self.batchSize,1,256,256))).type(torch.cuda.FloatTensor)
 
-
         for epoch in range(self.epochs):
             for real,SAR in tqdm(self.dataloader,position=0,leave=True,disable=True): #self.config.run_polyaxon):
 
@@ -195,10 +194,10 @@ class trainInpaintingWgan():
             if self.config.run_polyaxon and epoch % 5 == 0:
                 metrics = {}
                 for key,value in loss_dict.items():
-                    modelHelper.saveMetrics(metrics, key, value.item(), self.config.polyaxon_experiment, epoch)
-                modelHelper.saveMetrics(metrics,'critic cost', critic_cost,self.config.polyaxon_experiment,epoch)
-                modelHelper.saveMetrics(metrics, 'Wasserstein distance', wasserstein_d, self.config.polyaxon_experiment, epoch)
-                modelHelper.saveMetrics(metrics, 'Gen cost', gen_cost, self.config.polyaxon_experiment,epoch)
+                    modelHelper.saveMetricsNewPolyaxon(metrics, key, value.item(), epoch)
+                modelHelper.saveMetricsNewPolyaxon(metrics,'critic cost', critic_cost,epoch)
+                modelHelper.saveMetricsNewPolyaxon(metrics, 'Wasserstein distance', wasserstein_d, epoch)
+                modelHelper.saveMetricsNewPolyaxon(metrics, 'Gen cost', gen_cost,epoch)
 
             if epoch % self.save_model_step == 0 and self.trainMode == True:
                 name = str(self.modelName) + '_' + str(epoch)
@@ -307,11 +306,12 @@ class trainInpaintingWgan():
                 if self.config.run_polyaxon and epoch % 5 == 0:
                     metrics = {}
                     for key, value in loss_dict.items():
-                        modelHelper.saveMetrics(metrics, key, value.item(), self.config.polyaxon_experiment, epoch+self.epochs)
-                    modelHelper.saveMetrics(metrics, 'critic cost', critic_cost, self.config.polyaxon_experiment, epoch+self.epochs)
-                    modelHelper.saveMetrics(metrics, 'Wasserstein distance', wasserstein_d,
-                                            self.config.polyaxon_experiment, epoch+self.epochs)
-                    modelHelper.saveMetrics(metrics, 'Gen cost', gen_cost, self.config.polyaxon_experiment, epoch+self.epochs)
+                        for key, value in loss_dict.items():
+                            modelHelper.saveMetricsNewPolyaxon(metrics, key, value.item(), epoch)
+                        modelHelper.saveMetricsNewPolyaxon(metrics, 'critic cost', critic_cost, epoch)
+                        modelHelper.saveMetricsNewPolyaxon(metrics, 'Wasserstein distance', wasserstein_d,
+                                                           epoch)
+                        modelHelper.saveMetricsNewPolyaxon(metrics, 'Gen cost', gen_cost, epoch)
                 if epoch % self.save_model_step == 0 and self.trainMode == True:
                     name = str(self.modelName) + '_' + str(epoch+self.epochs)
                     model_path = modelHelper.saveModel(name, self.modelOutputPath, gen, self.modelName)
