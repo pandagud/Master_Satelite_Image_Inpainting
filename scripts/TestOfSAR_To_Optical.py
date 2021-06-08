@@ -19,6 +19,7 @@ from src.models.UnetSarToOptical import UnetGenerator
 import torch
 from tqdm.auto import tqdm
 from src.shared.modelUtility import modelHelper
+from glob import glob
 
 @click.command()
 @click.argument('args', nargs=-1)
@@ -44,24 +45,19 @@ def main(args):
     else:
         pathToData = Path(r"C:\Users\Morten From\PycharmProjects\testDAta")
 
-    #testPathData = Path(r'/workspace/data_landset8/unzipped/GrassCrops/BC/LC81820302014180LGN00')
-
-    #S1A_20201005_034656_DSC_109_RGBsar_cog.tif
-    #S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B02_cog
-    #S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B03_cog.tif
-    #S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B04_cog.tif
 
     logger = logging.getLogger(__name__)
     logger.info('making final dataLayer set from raw dataLayer')
-
     logger.info(pathToData)
 
     device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
-
-    ImageDict = get_dataset(pathToData, batch_size=1)
+    B_size = 1
+    beta_test_path_list = glob(str(pathToData) + "/*/")
+    ImageDict = get_dataset(beta_test_path_list, batch_size=B_size)
     train = ImageDict['train_dataloader']
     test = ImageDict['test_dataloader']
-    genPath = r'C:\Users\Morten From\PycharmProjects\Speciale\Master_Satelite_Image_Inpainting\models\200_net_GAtoB.pth'
+
+    genPath = r'C:\Users\Morten From\PycharmProjects\Speciale\Master_Satelite_Image_Inpainting\models\New_200.pth'
     outputPathImages = Path(r'C:\Users\Morten From\PycharmProjects\Speciale\Master_Satelite_Image_Inpainting\images')
     testGen = UnetGenerator(3, 3, 8)
     testGen.load_state_dict(torch.load(genPath))
@@ -73,7 +69,7 @@ def main(args):
         batchOfImages = real.to(device)
         batchOfImagesSAR = SAR.to(device)
         outputs = testGen(batchOfImagesSAR)
-        modelHelper.save_tensor_batchSAR(batchOfImages, batchOfImagesSAR, outputs, 1,
+        modelHelper.save_tensor_batchSAR(batchOfImages, batchOfImagesSAR, outputs, B_size,
                                       Path.joinpath(outputPathImages, 'iter' + str(iterater)))
         iterater = iterater+1
 
