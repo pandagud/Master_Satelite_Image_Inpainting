@@ -91,7 +91,7 @@ class eval_model():
         os.makedirs(local_store_path)
         os.makedirs(local_test_nir_path)
         start_time = datetime.now()
-        for real in tqdm(test_dataloader,disable=self.config.run_polyaxon):
+        for real,sar in tqdm(test_dataloader,disable=self.config.run_polyaxon):
             masks = loadAndAgumentMasks.returnTensorMasks(self.config.batch_size)
             masks = torch.from_numpy(masks)
             masks = masks.type(torch.cuda.FloatTensor)

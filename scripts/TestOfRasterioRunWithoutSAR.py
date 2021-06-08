@@ -15,6 +15,7 @@ from pathlib import Path
 from polyaxon_client.tracking import get_data_paths, get_outputs_path, Experiment
 from src.evalMetrics.eval_GAN_model import eval_model
 from src.dataLayer.LoadDataThroughRasterio import get_dataset
+from glob import glob
 
 
 # @click.command()
@@ -47,12 +48,12 @@ def main():
         config.output_path = output_root_path
         config.polyaxon_experiment = Experiment()
 
-        pathToData = str(input_root_path / '/workspace/data_landset8/testImages')
+        pathToData = str(input_root_path / '/workspace/data_landset8/testImages/Betaset')
     else:
-        pathToData = str('/workspace/data_landset8/testImages')
-        # pathToData = Path(r"C:\Users\Morten From\PycharmProjects\testDAta")
-    pathToData = Path(r"C:\Users\Morten From\PycharmProjects\testDAta")
-    testPathData = Path(r'/workspace/data_landset8/unzipped/GrassCrops/BC/LC81820302014180LGN00')
+        pathToData = str(r"C:\Users\Morten From\PycharmProjects\testDAta")
+
+
+    beta_test_path_list = glob(str(pathToData) + "/*/")
 
     # S1A_20201005_034656_DSC_109_RGBsar_cog.tif
     # S2B_MSIL2A_20201002T090719_N0214_R050_T35TMH_20201002T113443_B02_cog
@@ -64,7 +65,7 @@ def main():
 
     logger.info(pathToData)
 
-    ImageDict = get_dataset(pathToData, batch_size=config.batch_size)
+    ImageDict = get_dataset(beta_test_path_list, batch_size=config.batch_size)
     train = ImageDict['train_dataloader']
     test = ImageDict['test_dataloader']
 
