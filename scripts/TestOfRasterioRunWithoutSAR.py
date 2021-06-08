@@ -30,7 +30,7 @@ def main():
     ## For polyaxon
 
     config.epochs = 501
-    config.run_polyaxon = False
+    config.run_polyaxon = True
     config.batch_size = 9
     config.lr = 0.0002
     config.save_model_step = 100
@@ -38,19 +38,23 @@ def main():
     config.model_name = 'PartialConvolutionsWgan'
 
     # Test parametre vi kører med, som normalt sættes i experiments
-
     if config.run_polyaxon:
-        input_root_path = Path(get_data_paths()['data'])  # 'data'
-        output_root_path = Path(get_outputs_path())
+        # The POLYAXON_NO_OP env variable had to be set before any Polyaxon imports were allowed to happen
+        from polyaxon import tracking
+        tracking.init()
+        input_root_path = Path('/data_landset8/testImages/Betaset')
+        cache_path = Path('/cache')
+        output_root_path = Path(tracking.get_outputs_path())
+        pathToData = input_root_path ## Delete later HACK
         inpainting_data_path = input_root_path / 'inpainting'
-        os.environ['TORCH_HOME'] = str(input_root_path / 'pytorch_cache')
-        config.data_path = inpainting_data_path
-        config.output_path = output_root_path
-        config.polyaxon_experiment = Experiment()
-
-        pathToData = str(input_root_path / '/workspace/data_landset8/testImages/Betaset')
-    else:
-        pathToData = str(r"C:\Users\Morten From\PycharmProjects\testDAta")
+        # Set PyTorch to use the data directory for caching pre-trained models. If this is not done, each experiment
+        # will download the pre-trained model and store it in each individual experiment container, thereby wasting
+        # large amounts of disk space.
+        # Code is from here: https://stackoverflow.com/a/52784628
+        os.environ['TORCH_HOME'] = str(cache_path / 'pytorch_cache')  # setting the environment variable
+    if not config.general.use_polyaxon:
+        os.environ['POLYAXON_NO_OP'] = 'true'
+    # Setup Polyaxon (import must be done here as the POLYAXON_NO_OP variable was set inside Python)
 
 
     beta_test_path_list = glob(str(pathToData) + "/*/")
