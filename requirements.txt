@@ -17,6 +17,5 @@ seaborn>=0.10.1
 pathlib>=1.0.1
 scikit-image>=0.16.1
 polyaxon_client==0.6.1
-gdal==3.0.2
 albumentations==0.5.1
 rasterio==1.1.0
