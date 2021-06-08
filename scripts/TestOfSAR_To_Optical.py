@@ -61,7 +61,7 @@ def main(args):
     ImageDict = get_dataset(pathToData, batch_size=1)
     train = ImageDict['train_dataloader']
     test = ImageDict['test_dataloader']
-    genPath = r'C:\Users\Morten From\PycharmProjects\Speciale\Master_Satelite_Image_Inpainting\models\200_net_GAtoB.pth'
+    genPath = r'C:\Users\Morten From\PycharmProjects\Speciale\Master_Satelite_Image_Inpainting\models\New_200.pth'
     outputPathImages = Path(r'C:\Users\Morten From\PycharmProjects\Speciale\Master_Satelite_Image_Inpainting\images')
     testGen = UnetGenerator(3, 3, 8)
     testGen.load_state_dict(torch.load(genPath))
