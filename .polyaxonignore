@@ -11,4 +11,11 @@ var
 *.pyc
 *.swp
 .DS_Store
-./.polyaxon
+./.workspace
+./.mypy_cache
+./.pytest_cache
+./docs
+./mypy_cache/
+./tests
+./models
+./images

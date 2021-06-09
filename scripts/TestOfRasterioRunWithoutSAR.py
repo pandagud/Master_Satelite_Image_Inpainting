@@ -1,25 +1,19 @@
 import logging
-import click
 import sys
 import os
 
 # Set PYTHONPATH to parent folder to import module.
 # (https://stackoverflow.com/questions/714063/importing-modules-from-parent-folder)
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from src.dataLayer.importRGB import importData
 from src.models.train_Wgan_model_withoutSAR import trainInpaintingWgan
 from src.models.UnetPartialConvModel import generator, discriminator, criticWgan
 from src.config_default import TrainingConfig
-from src.config_utillity import update_config
 from pathlib import Path
-from polyaxon_client.tracking import get_data_paths, get_outputs_path, Experiment
 from src.evalMetrics.eval_GAN_model import eval_model
 from src.dataLayer.LoadDataThroughRasterio import get_dataset
 from glob import glob
 
 
-# @click.command()
-# @click.argument('args', nargs=-1)
 def main():
     """ Runs dataLayer processing scripts to turn raw dataLayer from (../raw) into
         cleaned dataLayer ready to be analyzed (saved in ../processed).
@@ -99,8 +93,5 @@ def main():
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-    # not used in this stub but often useful for finding various files
-    # project_dir = Path(__file__).resolve().parents[2]
 
     main()
