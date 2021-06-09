@@ -35,8 +35,8 @@ class MaskClass():
             ])
         else:
             self.transform = A.Compose([
-                A.transforms.HorizontalFlip(p=0.5),
-                A.transforms.VerticalFlip(p=0.5)
+                A.HorizontalFlip(p=0.5),
+                A.VerticalFlip(p=0.5)
             ])
 
 

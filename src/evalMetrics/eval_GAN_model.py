@@ -1,8 +1,5 @@
 import torch
-import logging
-import click
 import os
-import sys
 from src.evalMetrics.FID import FIDCalculator
 from src.evalMetrics.PSNR import PSNR
 from src.evalMetrics.Pytorch_SSIM import ssim, SSIM
@@ -14,11 +11,8 @@ from src.evalMetrics.SSIM import SSIM_SKI
 from pathlib import Path
 from datetime import datetime
 from src.dataLayer.importRGB import importData,TCIDatasetLoader
-from src.config_default import TrainingConfig
-from src.config_utillity import update_config
 from src.dataLayer import makeMasks
 from tqdm.auto import tqdm
-from polyaxon_client.tracking import get_data_paths, get_outputs_path
 from src.shared.modelUtility import modelHelper
 from src.shared.evalUtility import saveEvalToTxt
 from src.models.UnetPartialConvModel import generator, Wgangenerator

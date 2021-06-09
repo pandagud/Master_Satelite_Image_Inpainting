@@ -1,7 +1,7 @@
 import torch
 import scipy
 import numpy as np
-import seaborn as sns
+#import seaborn as sns
 import pandas as pd
 import os
 from tqdm.auto import tqdm
@@ -142,4 +142,4 @@ class FIDCalculator:
         df_fake["is_real"] = "no"
         df_real["is_real"] = "yes"
         df = pd.concat([df_fake, df_real])
-        sns.pairplot(df, plot_kws={'alpha': 0.1}, hue='is_real')
+        #sns.pairplot(df, plot_kws={'alpha': 0.1}, hue='is_real')

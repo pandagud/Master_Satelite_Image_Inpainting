@@ -1,25 +1,19 @@
 import logging
-import click
 import sys
 import os
 
 # Set PYTHONPATH to parent folder to import module.
 # (https://stackoverflow.com/questions/714063/importing-modules-from-parent-folder)
 sys.path.insert(1, os.path.join(sys.path[0], '..'))
-from src.dataLayer.importRGB import importData
 from src.models.train_Wgan_model_withoutSAR import trainInpaintingWgan
 from src.models.UnetPartialConvModel import generator, discriminator, criticWgan
 from src.config_default import TrainingConfig
-from src.config_utillity import update_config
 from pathlib import Path
-from polyaxon_client.tracking import get_data_paths, get_outputs_path, Experiment
 from src.evalMetrics.eval_GAN_model import eval_model
 from src.dataLayer.LoadDataThroughRasterio import get_dataset
 from glob import glob
 
 
-# @click.command()
-# @click.argument('args', nargs=-1)
 def main():
     """ Runs dataLayer processing scripts to turn raw dataLayer from (../raw) into
         cleaned dataLayer ready to be analyzed (saved in ../processed).
@@ -28,6 +22,8 @@ def main():
     config = TrainingConfig()
     # config = update_config(args,config)
     ## For polyaxon
+    import  albumentations as test
+    print(test.__version__)
 
     config.epochs = 501
     config.run_polyaxon = True
@@ -42,7 +38,7 @@ def main():
         # The POLYAXON_NO_OP env variable had to be set before any Polyaxon imports were allowed to happen
         from polyaxon import tracking
         tracking.init()
-        input_root_path = Path('/data_landset8/testImages/Betaset')
+        input_root_path = Path(r'/data/inpainting/data_landset8/Test_dataset/Betaset')
         cache_path = Path('/cache')
         output_root_path = Path(tracking.get_outputs_path())
         pathToData = input_root_path ## Delete later HACK
@@ -52,7 +48,10 @@ def main():
         # large amounts of disk space.
         # Code is from here: https://stackoverflow.com/a/52784628
         os.environ['TORCH_HOME'] = str(cache_path / 'pytorch_cache')  # setting the environment variable
-    if not config.general.use_polyaxon:
+
+        config.output_path = Path(os.getcwd()).joinpath('outputs')
+        config.data_path = Path(r'/data/inpainting/')
+    if not config.run_polyaxon:
         os.environ['POLYAXON_NO_OP'] = 'true'
     # Setup Polyaxon (import must be done here as the POLYAXON_NO_OP variable was set inside Python)
 
@@ -99,8 +98,5 @@ def main():
 if __name__ == '__main__':
     log_fmt = '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
     logging.basicConfig(level=logging.INFO, format=log_fmt)
-
-    # not used in this stub but often useful for finding various files
-    # project_dir = Path(__file__).resolve().parents[2]
 
     main()
