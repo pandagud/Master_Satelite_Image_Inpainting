@@ -43,3 +43,4 @@ class TrainingConfig:
     data_normalize:bool=False
     trainFrozen:bool=False
     nir_data:bool=False
+    polyaxon_tracking = None

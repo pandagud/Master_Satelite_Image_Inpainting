@@ -287,10 +287,6 @@ class modelHelper:
         polyaxon_experiment.log_metrics(step=epoch_step, **metrics)
 
     @staticmethod
-    def saveMetricsNewPolyaxon(metrics,name,value,epoch_step):
-        os.environ['POLYAXON_NO_OP'] = 'true'
-        from polyaxon import tracking
-        tracking.init()
-        polyaxon_experiment = tracking
+    def saveMetricsNewPolyaxon(metrics,name,value,epoch_step,config):
         metrics[name] = value
-        polyaxon_experiment.log_metrics(step=epoch_step,**metrics)
+        config.polyaxon_tracking.log_metrics(step=epoch_step,**metrics)

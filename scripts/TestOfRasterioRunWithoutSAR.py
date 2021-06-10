@@ -22,12 +22,10 @@ def main():
     config = TrainingConfig()
     # config = update_config(args,config)
     ## For polyaxon
-    import  albumentations as test
-    print(test.__version__)
 
     config.epochs = 501
     config.run_polyaxon = True
-    config.batch_size = 9
+    config.batch_size = 8
     config.lr = 0.0002
     config.save_model_step = 100
     config.n_critic = 2
@@ -51,6 +49,7 @@ def main():
 
         config.output_path = Path(os.getcwd()).joinpath('outputs')
         config.data_path = Path(r'/data/inpainting/')
+        config.polyaxon_tracking=tracking
     if not config.run_polyaxon:
         os.environ['POLYAXON_NO_OP'] = 'true'
     # Setup Polyaxon (import must be done here as the POLYAXON_NO_OP variable was set inside Python)

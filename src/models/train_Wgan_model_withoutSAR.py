@@ -1,7 +1,7 @@
 import torch
 from torch import nn
 from tqdm.auto import tqdm
-import numpy as np
+import os
 import matplotlib.pyplot as plt
 from torchvision.utils import make_grid
 from src.dataLayer import makeMasks
@@ -32,7 +32,11 @@ class trainInpaintingWgan():
             self.localdir = Path().absolute().parent
             self.output_path = Path().absolute().parent
         self.modelOutputPath = Path.joinpath(self.output_path, 'models')
+        if not os.path.exists(self.modelOutputPath):
+            os.makedirs(self.modelOutputPath)
         self.ImageOutputPath = Path.joinpath(self.output_path, 'images')
+        if not os.path.exists(self.ImageOutputPath):
+            os.makedirs(self.ImageOutputPath)
         self.trainMode = config.trainMode
         self.modelName = config.model_name
         self.n_critic = config.n_critic
@@ -68,9 +72,12 @@ class trainInpaintingWgan():
                                   grad_outputs=torch.ones(disc_interpolates.size()).to(self.device),
                                   create_graph=True, retain_graph=True, only_inputs=True)[0]
         gradients = gradients.view(gradients.size(0), -1)
-        #new_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * self.lambda_gp
-        new_gradient_penalty = torch.mean((1. - torch.sqrt(1e-8+torch.sum(gradients.view(gradients.size(0), -1)**2, dim=1)))**2)* self.lambda_gp
-        return new_gradient_penalty
+        # new_gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * self.lambda_gp
+
+        # gradients = gradients.view(gradients.size(0), -1)
+
+        gradient_penalty = ((gradients.norm(2, dim=1) - 1) ** 2).mean() * self.lambda_gp
+        return gradient_penalty
 
 
     def trainGAN(self):
@@ -102,7 +109,6 @@ class trainInpaintingWgan():
 
         print("Setup loss function...")
         loss_func = CalculateLoss(config=self.config).to(self.device)
-        full_ones = torch.from_numpy(np.ones((self.batchSize,1,256,256))).type(torch.cuda.FloatTensor)
 
         for epoch in range(self.epochs):
             for real,SAR in tqdm(self.dataloader,position=0,leave=True,disable=True): #self.config.run_polyaxon):
@@ -181,10 +187,10 @@ class trainInpaintingWgan():
             if self.config.run_polyaxon and epoch % 5 == 0:
                 metrics = {}
                 for key,value in loss_dict.items():
-                    modelHelper.saveMetricsNewPolyaxon(metrics, key, value.item(), epoch)
-                modelHelper.saveMetricsNewPolyaxon(metrics,'critic cost', critic_cost,epoch)
-                modelHelper.saveMetricsNewPolyaxon(metrics, 'Wasserstein distance', wasserstein_d, epoch)
-                modelHelper.saveMetricsNewPolyaxon(metrics, 'Gen cost', gen_cost,epoch)
+                    modelHelper.saveMetricsNewPolyaxon(metrics, key, value.item(), epoch,self.config)
+                modelHelper.saveMetricsNewPolyaxon(metrics,'critic cost', critic_cost.item(),epoch,self.config)
+                modelHelper.saveMetricsNewPolyaxon(metrics, 'Wasserstein distance', wasserstein_d.item(), epoch,self.config)
+                modelHelper.saveMetricsNewPolyaxon(metrics, 'Gen cost', gen_cost.item(),epoch,self.config)
 
             if epoch % self.save_model_step == 0 and self.trainMode == True:
                 name = str(self.modelName) + '_' + str(epoch)
@@ -202,9 +208,9 @@ class trainInpaintingWgan():
                 #                              Path.joinpath(self.ImageOutputPath, 'epoch_' + str(epoch)))
                 # Save loss from generator and critic to a file
 
-                filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + 'Errors.txt')
-                saveString = 'wasserStein Number: ' + str(wasserstein_d) +' Generator loss: ' + str(g_loss.item()) + '\n' + 'critic loss: ' + str(d_loss.item()) + '\n' + 'critic guess on reals: ' + str(critic_score) + ' critic guess on fakes: ' + str(gen_score) + ' Updated critic guess on fake: ' + str(gen_cost) + '\n'
-                modelHelper.saveToTxt(filename, saveString)
+                #filename = Path.joinpath(self.modelOutputPath, self.modelName + '_' + str(self.batchSize) + 'Errors.txt')
+                #saveString = 'wasserStein Number: ' + str(wasserstein_d) +' Generator loss: ' + str(g_loss.item()) + '\n' + 'critic loss: ' + str(d_loss.item()) + '\n' + 'critic guess on reals: ' + str(critic_score) + ' critic guess on fakes: ' + str(gen_score) + ' Updated critic guess on fake: ' + str(gen_cost) + '\n'
+                #modelHelper.saveToTxt(filename, saveString)
 
         if self.trainWithFreeze:
             #trainFrozenModel = trainFrozenGan(self.dataloader,gen,critic,gen_opt,critic_opt, self.config)
@@ -290,11 +296,11 @@ class trainInpaintingWgan():
                     metrics = {}
                     for key, value in loss_dict.items():
                         for key, value in loss_dict.items():
-                            modelHelper.saveMetricsNewPolyaxon(metrics, key, value.item(), epoch)
-                        modelHelper.saveMetricsNewPolyaxon(metrics, 'critic cost', critic_cost, epoch)
-                        modelHelper.saveMetricsNewPolyaxon(metrics, 'Wasserstein distance', wasserstein_d,
-                                                           epoch)
-                        modelHelper.saveMetricsNewPolyaxon(metrics, 'Gen cost', gen_cost, epoch)
+                            modelHelper.saveMetricsNewPolyaxon(metrics, key, value.item(), epoch,self.config)
+                        modelHelper.saveMetricsNewPolyaxon(metrics, 'critic cost', critic_cost.item(), epoch,self.config)
+                        modelHelper.saveMetricsNewPolyaxon(metrics, 'Wasserstein distance', wasserstein_d.item(),
+                                                           epoch,self.config)
+                        modelHelper.saveMetricsNewPolyaxon(metrics, 'Gen cost', gen_cost.item(), epoch,self.config)
                 if epoch % self.save_model_step == 0 and self.trainMode == True:
                     name = str(self.modelName) + '_' + str(epoch+self.epochs)
                     model_path = modelHelper.saveModel(name, self.modelOutputPath, gen, self.modelName)
