@@ -96,6 +96,7 @@ class LoadRasterioWindows(Dataset):
         # Optic image
         image = transformed['image']
         image = torch.from_numpy(np.array((image).astype(np.float32)))
+        image[image > 10000] = 10000
         image = image / 10000
 
         # SAR Image

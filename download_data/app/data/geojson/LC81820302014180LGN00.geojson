@@ -1,0 +1,1 @@
+{"type": "FeatureCollection", "features": [{"type": "Feature", "geometry": {"type": "Point", "coordinates": [26.515808, 43.177373]}, "properties": {"Biome": "GrassCrops", "Data_Acquired": "2014-06-29", "ProductType": "LANDSAT_8", "centroid_lon": 26.51580813755562, "centroid_lat": 43.17737317879187}}]}
